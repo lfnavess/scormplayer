@@ -410,6 +410,7 @@ function scormPlayer(){
 						}
 						if(scormPlayerConfig.cache){ cache[element] = value; }
 						if(element === "cmi.suspend_data"){ suspend_data = value; }
+                        if(scormPlayerConfig.showCompleteBtn && element === "cmi.core.lesson_status" && value === "completed"){ createbtn(); }
 					} else { testError(); }
 				} catch (error){
 					var_ret = "false";
@@ -445,19 +446,7 @@ function scormPlayer(){
 							suspend_data = var_ret; 
 						}
 						if(scormPlayerConfig.cache && !element.endsWith("._count")) { cache[element] = var_ret; }
-                        if(scormPlayerConfig.showCompleteBtn && element === "cmi.core.lesson_status" && var_ret === "completed"){
-                            var x = document.createElement("input");
-                            x.setAttribute("type", "button"); x.setAttribute("value", "Completar"); x.style.backgroundColor = "#4CAF50";
-                            x.style.border = "none"; x.style.color = "white"; x.style.padding = "15px 32px"; x.style.borderRadius = "20px";
-                            x.style.fontSize = "16px"; x.style.margin = "4px 2px"; x.style.cursor = "pointer"; x.style.position = "fixed";
-                            x.style.bottom = "20px"; x.style.right = "20px"; 
-                            x.addEventListener("click", function(){
-                                console.log(comment("CompleteBtn click"));
-                                _window.history.back();
-                            });
-                            _window.document.body.appendChild(x);
-                            console.log(comment("scormPlayerConfig.showCompleteBtn"));
-                        }
+                        if(scormPlayerConfig.showCompleteBtn && element === "cmi.core.lesson_status" && var_ret === "completed"){ createbtn(); }
 					}
 				} catch (error){
 					var_ret = "";
@@ -615,7 +604,19 @@ function scormPlayer(){
 		console.log(comment("Error in scormPlayer: {0}".format(error.message)));
 		alert("¡Ocurrio un error comunicate a RedEducativa!\nscormPlayer Error: {0}".format(error.message));
 	}
-
+    function createbtn(){
+        var x = document.createElement("input");
+        x.setAttribute("type", "button"); x.setAttribute("value", "Completar"); x.style.backgroundColor = "#4CAF50";
+        x.style.border = "none"; x.style.color = "white"; x.style.padding = "15px 32px"; x.style.borderRadius = "20px";
+        x.style.fontSize = "16px"; x.style.margin = "4px 2px"; x.style.cursor = "pointer"; x.style.position = "fixed";
+        x.style.bottom = "20px"; x.style.right = "20px"; 
+        x.addEventListener("click", function(){
+        console.log(comment("CompleteBtn click"));
+        _window.history.back();
+        });
+        _window.document.body.appendChild(x);
+        console.log(comment("scormPlayerConfig.showCompleteBtn"));
+    }
 	function addEventListener(obj, events, fn) {
 		//https://stackoverflow.com/questions/2657182/correct-usage-of-addeventlistener-attachevent/8873330#8873330
 		if(typeof events === "string"){ events = events.split(" "); }
