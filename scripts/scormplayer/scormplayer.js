@@ -125,7 +125,7 @@ function scormPlayer(){
 		var log = [], log_item, _window = window, commit_timeout, commit_max_timeout, changes, player_timeout, last_commit, SCO_in_use,
 		state, cache = {}, suspend_data, entry, isParent, states, parser, exitFullscreen, requestFullscreen, moment = window.moment,
         Modernizr = window.Modernizr, UAParser = window.UAParser, API;
-        delete window.moment; delete window.Modernizr; delete window.UAParser;
+        delete window.moment; delete window.UAParser;
         moment.duration.fn.format = function (input) {
             var output = input, milliseconds = this.asMilliseconds(), totalMilliseconds = 0;
             var replaceRegexps = {
@@ -312,7 +312,6 @@ function scormPlayer(){
 				return var_ret;
 			},
 			LMSFinish: function (parameter){
-				var start, var_ret;
 				try{
 					if(state === states.Initialized){
 						console.log(comment("Auto set cmi.core.exit state"));
@@ -320,13 +319,8 @@ function scormPlayer(){
 						else{ API.LMSSetValue("cmi.core.exit", ""); }
 						saveInit(false);
 					}
-					start = moment();
-					try{ var_ret = _window._API.LMSFinish(parameter); }
-					catch (error){
-						var_ret = "false";
-						console.log(comment("Error calling LMSFinish: {0}".format(error.message)));
-						alert("¡Ocurrio un error comunicate a RedEducativa!\LMSFinish() Error: {0}".format(error.message));
-					}
+					var start = moment();
+					var var_ret = _window._API.LMSFinish(parameter);
 					console.log("API.LMSFinish({0});{1}".format(param(parameter), comment(param(var_ret), start)));
 					if(var_ret === "true"){
 						state = states.Finished;
@@ -453,21 +447,16 @@ function scormPlayer(){
 						if(scormPlayerConfig.cache && !element.endsWith("._count")) { cache[element] = var_ret; }
                         if(scormPlayerConfig.showCompleteBtn && element === "cmi.core.lesson_status" && var_ret === "completed"){
                             var x = document.createElement("input");
-                            x.setAttribute("type", "button");
-                            x.setAttribute("value", "Completar");
-                            x.style.backgroundColor = "#4CAF50";
-                            x.style.border = "none";
-                            x.style.color = "white";
-                            x.style.padding = "15px 32px";
-                            x.style.borderRadius = "20px";
-                            x.style.fontSize = "16px";
-                            x.style.margin = "4px 2px";
-                            x.style.cursor = "pointer";
-                            x.style.position = "fixed";
-                            x.style.bottom = "20px";
-                            x.style.right = "20px";
-                            x.addEventListener("click", function(){ API.LMSFinish(""); });
+                            x.setAttribute("type", "button"); x.setAttribute("value", "Completar"); x.style.backgroundColor = "#4CAF50";
+                            x.style.border = "none"; x.style.color = "white"; x.style.padding = "15px 32px"; x.style.borderRadius = "20px";
+                            x.style.fontSize = "16px"; x.style.margin = "4px 2px"; x.style.cursor = "pointer"; x.style.position = "fixed";
+                            x.style.bottom = "20px"; x.style.right = "20px"; 
+                            x.addEventListener("click", function(){
+                                console.log(comment("CompleteBtn click"));
+                                _window.history.back();
+                            });
                             _window.document.body.appendChild(x);
+                            console.log(comment("scormPlayerConfig.showCompleteBtn"));
                         }
 					}
 				} catch (error){
