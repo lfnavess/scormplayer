@@ -107,7 +107,7 @@ if (!scormPlayerConfig) {
         commitOnlyChanges: true,
         fillScreen: true,
         testFlash: false,
-        APIVersion: "1.2",
+        APIname: "API",
         showCompleteBtn: false,
         scale: false
     }
@@ -116,7 +116,7 @@ if (scormPlayerConfig.cache === undefined) { scormPlayerConfig.cache = true; }
 if (scormPlayerConfig.commitOnlyChanges === undefined) { scormPlayerConfig.commitOnlyChanges = true; }
 if (scormPlayerConfig.fillScreen === undefined) { scormPlayerConfig.fillScreen = true; }
 if (scormPlayerConfig.testFlash === undefined) { scormPlayerConfig.testFlash = false; }
-if (scormPlayerConfig.APIVersion === undefined) { scormPlayerConfig.APIVersion = "1.2"; }
+if (scormPlayerConfig.APIname === undefined) { scormPlayerConfig.APIname = "API"; }
 if (scormPlayerConfig.showCompleteBtn === undefined) { scormPlayerConfig.showCompleteBtn = false; }
 if (scormPlayerConfig.scale === undefined) { scormPlayerConfig.scale = false; }
 if (scormPlayerConfig.testFlash && document.referrer.indexOf("testflash.html") === -1) {
@@ -124,7 +124,7 @@ if (scormPlayerConfig.testFlash && document.referrer.indexOf("testflash.html") =
     //location.href("http://www.rededucativa.com.mx/ContentData/content/5/getlog/testflash.html");
 } else { scormPlayer(); }
 scormPlayer.reportTime = function() {
-    scormPlayer.API.LMSSetValue("cmi.core.session_time", moment.duration(moment() - scormPlayer.start).format("HH:mm:ss.SS"));
+    API.LMSSetValue("cmi.core.session_time", moment.duration(moment() - scormPlayer.start).format("HH:mm:ss.SS"));
 }
 
 
@@ -132,8 +132,9 @@ function scormPlayer() {
     "use strict";
     try {
         var log = [], log_item, _window = window, commit_timeout, commit_max_timeout, changes, player_timeout, last_commit, SCO_in_use,
-            state, cache = {}, suspend_data, entry, isParent, states, parser, exitFullscreen, requestFullscreen, moment = window.moment,
-            Modernizr = window.Modernizr, UAParser = window.UAParser, API;
+            cache = {}, suspend_data, entry, isParent, states = { NotInitialized: 0, Running: 1, Terminated: 2 },
+            state = states.NotInitialized, parser, exitFullscreen, requestFullscreen, moment = window.moment, Modernizr = window.Modernizr,
+            UAParser = window.UAParser, API, API_1184_11, apisource = "window";
         delete window.moment; delete window.UAParser;
         moment.duration.fn.format = function(input) {
             var output = input, milliseconds = this.asMilliseconds(), totalMilliseconds = 0;
@@ -199,10 +200,7 @@ function scormPlayer() {
                     else { requestFullscreen(Element.ALLOW_KEYBOARD_INPUT); console.log(comment("dblclick requestFullscreen")); }
                 }
             );
-        }
-
-        states = { NotInitialized: 0, Initialized: 1, Finished: 2 };
-        state = states.NotInitialized;
+            }
         scormPlayer.start = moment();
         console.log(comment("Start"));
         console.log("window.location.href;{0}".format(comment(param(window.location.href))));
@@ -219,295 +217,514 @@ function scormPlayer() {
         console.log(comment("Parse userAgent: {0}".format(parser)));
 
         console.log(comment("Find API"));
-        for (var attempt = 0, step = 0; !_window.API && attempt < 7 && step < 3; attempt++) {
+        for (var attempt = 0, step = 0; !_window[apiname] && attempt < 7 && step < 3; attempt++) {
             if (_window.parent && _window.parent !== _window) {
+                apisource += ".parent";
                 console.log(comment("window.parent"));
                 isParent = true;
                 _window = _window.parent;
             } else {
                 if (step === 0 && window.opener) {
                     console.log(comment("window.opener"));
+                    apisource += ".opener";
                     _window = window.opener; attempt = 0;
                 } else if (step === 1 && window.top && window.top.opener) {
                     console.log(comment("window.top.opener"));
+                    apisource += ".top.opener";
                     _window = window.top.opener; attempt = 0;
                 } else if (step === 2 && window.top && window.top.opener && window.top.opener.document) {
                     console.log(comment("windows.top.opener.document"));
+                    apisource += ".top.opener.document"
                     _window = windows.top.opener.document; attempt = 0;
                 }
                 step++;
             }
         }
-        console.log("_window.location.href;{0}".format(comment(param(_window.location.href))));
-        console.log("_window.document.referrer;{0}".format(comment(param(_window.document.referrer))));
+        ev("{0}.location.href".format(apisource));
+        ev("{0}.document.referrer".format(apisource));
 
-
-
-        if (!_window.API) {
-            console.log(comment("API NOT found!!"));
-            var _cmi;
-            _window._API = {
-                LMSInitialize: function() {
-                    _cmi = {
-                        "cmi.suspend_data": "",
-                        "cmi.core.lesson_mode": "credit",
-                        "cmi.core.lesson_location": "",
-                        "cmi.core.student_id": "0",
-                        "cmi.core.student_name": "liga directa",
-                        "cmi.core.entry": "ab-initio",
-                        "cmi.core.lesson_status": "not attempted"
-                    };
-                    return "true";
-                },
-                LMSFinish: function() { return "true"; },
-                LMSCommit: function() { return "true"; },
-                LMSSetValue: function(element, value) {
-                    _cmi[element] = value;
-                    return "true";
-                },
-                LMSGetValue: function(element) { return _cmi[element]; },
-                LMSGetLastError: function() { return "0"; },
-                LMSGetDiagnostic: function() { return ""; }
-            };
-        } else { _window._API = _window.API; }
         var noerror = false;
-        API = _window.API = window.API = scormPlayer.API = {
-            LMSInitialize: function(parameter) {
-                try {
-                    var startF = moment();
-                    var var_ret = _window._API.LMSInitialize(parameter);
-                    console.log("API.LMSInitialize({0});{1}".format(param(parameter), comment(param(var_ret), startF)));
-                    if ((noerror = var_ret === "true")) {
-                        last_commit = moment();
-                        API.LMSGetValue("cmi.suspend_data");
-                        if (SCO_in_use && SCO_in_use.add(5, "minutes") > moment()) {
-                            console.log(comment("SCO already launched"));
-                            alert(
-                                "Ya se esta mostrando un curso en otra ventana, favor de cerrarla y volver a ingresar\nO espera {0} minutos".format(
-                                    moment.duration(SCO_in_use - moment()).format("mm:ss")
-                                )
-                            );
-                            var_ret = "false";
-                            API.LMSFinish("");
+        if (scormPlayerConfig.APIname === "API_1184_11") {
+            API_1184_11 = _window.API_1184_11;
+            _window.API_1184_11 = window.API_1184_11 = {
+                Initialize: function(parameter) {
+                    try {
+                        var return_value = ev("API_1184_11.Initialize({0})".format(param(parameter)));
+                        if ((noerror = return_value === "true")) {
+                            last_commit = moment();
+                            window.API_1184_11.GetValue("cmi.suspend_data");
+                            if (SCO_in_use && SCO_in_use.add(5, "minutes") > moment()) {
+                                console.log(comment("SCO already launched"));
+                                alert(
+                                    "Ya se esta mostrando un curso en otra ventana, favor de cerrarla y volver a ingresar\nO espera {0} minutos".format(
+                                        moment.duration(SCO_in_use - moment()).format("mm:ss")
+                                    )
+                                );
+                                return_value = "false";
+                                window.API_1184_11.Terminate("");
+                            } else {
+                                state = states.Running;
+                                saveInit(true);
+                                window.API_1184_11.GetValue("cmi._version");
+                                window.API_1184_11.GetValue("cmi.completion_status");
+                                window.API_1184_11.GetValue("cmi.completion_threshold");
+                                window.API_1184_11.GetValue("cmi.credit");
+                                entry = window.API_1184_11.GetValue("cmi.entry");
+                                window.API_1184_11.GetValue("cmi.learner_id");
+                                window.API_1184_11.GetValue("cmi.learner_name");
+                                window.API_1184_11.GetValue("cmi.location");
+                                window.API_1184_11.GetValue("cmi.mode");
+                                window.API_1184_11.GetValue("cmi.progress_measure");
+                                window.API_1184_11.GetValue("cmi.scaled_passing_score");
+                                window.API_1184_11.GetValue("cmi.score.scaled");
+                                window.API_1184_11.GetValue("cmi.score.raw");
+                                window.API_1184_11.GetValue("cmi.score.min");
+                                window.API_1184_11.GetValue("cmi.score.max");
+                                window.API_1184_11.GetValue("cmi.success_status");
+                                window.API_1184_11.GetValue("cmi.total_time");
+                                setInterval(function() { saveInit(true); window.API_1184_11.Commit(""); }, 225000);
+                                if (entry === "ab-initio") {
+                                    window.API_1184_11.SetValue("cmi.exit", "suspend");
+                                    window.API_1184_11.SetValue("cmi.completion_status", "incomplete");
+                                } else if (entry === "resume") { window.API_1184_11.SetValue("cmi.exit", "suspend"); }
+                                window.API_1184_11.Commit("");
+                            }
+                            cmi.savelog();
                         } else {
-                            state = states.Initialized;
-                            saveInit(true);
-                            API.LMSGetValue("cmi.core.student_id");
-                            API.LMSGetValue("cmi.core.student_name");
-                            API.LMSGetValue("cmi.core.lesson_mode");
-                            entry = API.LMSGetValue("cmi.core.entry");
-                            API.LMSGetValue("cmi.core.credit");
-                            API.LMSGetValue("cmi.core.lesson_status");
-                            API.LMSGetValue("cmi.core.total_time");
-                            setInterval(function() { saveInit(true); API.LMSCommit(""); }, 225000);
-                            if (entry === "ab-initio") {
-                                API.LMSSetValue("cmi.core.exit", "suspend");
-                                API.LMSSetValue("cmi.core.lesson_status", "incomplete");
-                            } else if (entry === "resume") { API.LMSSetValue("cmi.core.exit", "suspend"); }
-                            API.LMSCommit("");
+                            testError();
+                            alert("¡Ocurrio un error al inicializar la comunicación con la plataforma!");
+                            window.API_1184_11.Terminate("");
+                        }
+                    } catch (error) {
+                        return_value = "false";
+                        console.log(comment("Error in API_1184_11.Initialize: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API_1184_11.Initialize: {0}".format(error.message));
+                    }
+                    return return_value;
+                },
+                Terminate: function(parameter) {
+                    try {
+                        if (state === states.Running) {
+                            console.log(comment("Auto set cmi.core.exit state"));
+                            if (API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { API.LMSSetValue("cmi.core.exit", "suspend"); }
+                            else { API.LMSSetValue("cmi.core.exit", ""); }
+                            saveInit(false);
+                        }
+                        var return_value = ev("API_1184_11.Terminate({0})".format(param(parameter)));
+                        if ((noerror = return_value === "true")) {
+                            state = states.Terminated;
+                            commit_timeout = clearTimeout(commit_timeout); commit_timeout = undefined;
+                            commit_max_timeout = clearTimeout(commit_max_timeout); commit_max_timeout = undefined;
+                            setTimeout(function() { document.close(); }, 0);
+                            sleep(1000);
+                        } else {
+                            testError();
+                            alert("¡Ocurrio un error al finalizar la comunicación con la plataforma!");
                         }
                         cmi.savelog();
-                    } else {
-                        testError();
-                        alert("¡Ocurrio un error al inicializar la comunicación con la plataforma!");
-                        API.LMSFinish("");
+                    } catch (error) {
+                        return_value = "false";
+                        console.log(comment("Error in API_1184_11.Terminate: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API_1184_11.Terminate: {0}".format(error.message));
                     }
-                } catch (error) {
-                    var_ret = "false";
-                    console.log(comment("Error in LMSInitialize: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSInitialize Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            LMSFinish: function(parameter) {
-                try {
-                    if (state === states.Initialized) {
-                        console.log(comment("Auto set cmi.core.exit state"));
-                        if (API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { API.LMSSetValue("cmi.core.exit", "suspend"); }
-                        else { API.LMSSetValue("cmi.core.exit", ""); }
-                        saveInit(false);
-                    }
-                    var start = moment();
-                    var var_ret = _window._API.LMSFinish(parameter);
-                    console.log("API.LMSFinish({0});{1}".format(param(parameter), comment(param(var_ret), start)));
-                    if ((noerror = var_ret === "true")) {
-                        state = states.Finished;
-                        commit_timeout = clearTimeout(commit_timeout); commit_timeout = undefined;
-                        commit_max_timeout = clearTimeout(commit_max_timeout); commit_max_timeout = undefined;
-                        setTimeout(function() { document.close(); }, 0);
-                        sleep(1000);
-                    } else {
-                        testError();
-                        alert("¡Ocurrio un error al finalizar la comunicación con la plataforma!");
-                    }
-                    cmi.savelog();
-                } catch (error) {
-                    var_ret = "false";
-                    console.log(comment("Error in LMSFinish: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSFinish Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            LMSCommit: function(parameter) {
-                try {
-                    var start = moment();
-                    if (scormPlayerConfig.commitOnlyChanges && !changes) {
-                        var_ret = "true";
-                        console.log(comment("No changes to commit"));
-                        console.log("\t\\\\API.LMSCommit({0});{1}".format(param(parameter), comment(param(var_ret), start)));
-                        return var_ret;
-                    }
-                    var var_ret = _window._API.LMSCommit(parameter);
-                    console.log("API.LMSCommit({0});{1}".format(param(parameter), comment(param(var_ret), start)));
-                    if ((noerror = var_ret === "true")) {
-                        last_commit = moment();
-                        changes = false;
-                        if (scormPlayerConfig.autoCommitTime) {
-                            commit_timeout = clearTimeout(commit_timeout);
-                            commit_max_timeout = clearTimeout(commit_max_timeout);
+                    return return_value;
+                },
+                GetValue: function(parameter) {
+                    try {
+                        var return_value = cache[parameter];
+                        if (state === states.Running && return_value !== undefined) {
+                            console.log(comment("Return value from cache"));
+                            console.log("\t\\\\API_1184_11.GetValue({0});{1}".format(param(parameter), comment(param(return_value), moment())));
+                            return return_value;
                         }
-                    } else {
-                        testError();
-                        alert("¡Ocurrio un error al guardar los datos verifica que tengas conexión a internet!");
+                        return_value = ev("API_1184_11.GetValue({0})".format(param(parameter)));
+                        noerror = false;
+                        if ((noerror = !(return_value === "" && testError()))) {
+                            if (parameter === "cmi.suspend_data") {
+                                if (return_value !== "") {
+                                    try {
+                                        return_value = JSON.parse(return_value);
+                                        if (return_value.length === 3) {
+                                            if (return_value[0] !== null) { SCO_in_use = moment(return_value[0]); }
+                                            return_value = return_value[2];
+                                        } else if (return_value.length === 2) {
+                                            SCO_in_use = moment(return_value[0]);
+                                            return_value = return_value[1];
+                                        }
+                                    } catch (e) { }
+                                }
+                                suspend_data = return_value;
+                            }
+                            if (scormPlayerConfig.cache && !parameter.endsWith("._count")) { cache[parameter] = return_value; }
+                            if (scormPlayerConfig.showCompleteBtn && parameter === "cmi.core.lesson_status" && return_value === "completed") { createbtn(); }
+                        }
+                    } catch (error) {
+                        return_value = "";
+                        console.log(comment("Error in API_1184_11.GetValue: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API_1184_11.GetValue: {0}".format(error.message));
                     }
-                } catch (error) {
-                    var_ret = "false";
-                    console.log(comment("Error in LMSCommit: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSCommit Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            LMSSetValue: function(element, value, persist) {
-                var start, tmp_value, var_ret;
-                try {
-                    if (
-                        scormPlayerConfig.cache
-                        && cache[element] === undefined
-                        && element !== "cmi.core.exit"
-                        && element !== "cmi.core.session_time"
-                        && !element.startsWith("cmi.interactions.")
-                    ) {
-                        console.log(comment("Check current value before set"));
-                        API.LMSGetValue(element);
-                    }
-                    if (entry === "" && element === "cmi.core.lesson_status" && value === "incomplete") {
-                        console.log(comment("Block change lesson_status"));
-                        var_ret = "true";
-                        console.log("\t\\\\API.LMSSetValue({0}, {1});{2}".format(param(element), param(value), comment(param(var_ret), start)));
-                        return var_ret;
-                    }
-                    start = moment();
-                    if (state === states.Initialized && cache[element] === value && !persist) {
-                        console.log(comment("Return value from cache"));
-                        console.log("\t\\\\API.LMSSetValue({0}, {1});{2}".format(param(element), param(value), comment(param("true"), start)));
-                        return "true";
-                    }
-                    tmp_value = element === "cmi.suspend_data" ? JSON.stringify([SCO_in_use, parser, value]) : value;
-                    var_ret = _window._API.LMSSetValue(element, tmp_value);
-                    console.log("API.LMSSetValue({0}, {1});{2}".format(param(element), param(tmp_value), comment(param(var_ret), start)));
-                    if ((noerror = var_ret === "true")) {
-                        changes = true;
-                        if (scormPlayerConfig.autoCommitTime) {
-                            clearTimeout(commit_timeout);
-                            commit_timeout = setTimeout(
-                                function() { console.log(comment("Auto commit")); API.LMSCommit(""); },
-                                scormPlayerConfig.autoCommitTime
-                            );
-                            if (!commit_max_timeout) {
-                                commit_max_timeout = setTimeout(
-                                    function() { console.log(comment("Timeout 60secs without commit")); API.LMSCommit(""); },
-                                    scormPlayerConfig.autoCommitTime * 2
+                    return return_value;
+                },
+                SetValue: function(parameter_1, parameter_2, persist) {
+                    var tmp_parameter_2, return_value;
+                    try {
+                        if (
+                            scormPlayerConfig.cache
+                            && cache[parameter_1] === undefined
+                            && parameter_1 !== "cmi.core.exit"
+                            && parameter_1 !== "cmi.core.session_time"
+                            && !parameter_1.startsWith("cmi.interactions.")
+                        ) {
+                            console.log(comment("Check current value before set"));
+                            window.API.LMSGetValue(parameter_1);
+                        }
+                        if (entry === "" && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "incomplete") {
+                            console.log(comment("Block change lesson_status"));
+                            return_value = "true";
+                            console.log("\t\\\\API_1184_11.SetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        if (state === states.Running && cache[parameter_1] === parameter_2 && !persist) {
+                            console.log(comment("No change data"));
+                            console.log("\t\\\\API_1184_11.SetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
+                            return "true";
+                        }
+                        tmp_value = parameter_1 === "cmi.suspend_data" ? JSON.stringify([SCO_in_use, parser, parameter_2]) : parameter_2;
+                        return_value = ev("API_1184_11.SetValue({0}, {1})".format(param(parameter_1), param(tmp_value)));
+                        if ((noerror = return_value === "true")) {
+                            changes = true;
+                            if (scormPlayerConfig.autoCommitTime) {
+                                clearTimeout(commit_timeout);
+                                commit_timeout = setTimeout(
+                                    function() { console.log(comment("Auto commit")); window.API.LMSCommit(""); },
+                                    scormPlayerConfig.autoCommitTime
                                 );
+                                if (!commit_max_timeout) {
+                                    commit_max_timeout = setTimeout(
+                                        function() { console.log(comment("Timeout 60secs without commit")); window.API.LMSCommit(""); },
+                                        scormPlayerConfig.autoCommitTime * 2
+                                    );
+                                }
                             }
-                        }
-                        if (scormPlayerConfig.cache) { cache[element] = value; }
-                        if (element === "cmi.suspend_data") { suspend_data = value; }
-                        if (scormPlayerConfig.showCompleteBtn && element === "cmi.core.lesson_status" && value === "completed") { createbtn(); }
-                    } else { testError(); }
-                } catch (error) {
-                    var_ret = "false";
-                    console.log(comment("Error in LMSSetValue: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSSetValue Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            LMSGetValue: function(element) {
-                try {
-                    var start = moment();
-                    var var_ret = cache[element];
-                    if (state === states.Initialized && var_ret !== undefined) {
-                        console.log(comment("Return value from cache"));
-                        console.log("\t\\\\API.LMSGetValue({0});{1}".format(param(element), comment(param(var_ret), start)));
-                        return var_ret;
+                            if (scormPlayerConfig.cache) { cache[parameter_1] = parameter_2; }
+                            if (parameter_1 === "cmi.suspend_data") { suspend_data = parameter_2; }
+                            if (scormPlayerConfig.showCompleteBtn && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "completed") { createbtn(); }
+                        } else { testError(); }
+                    } catch (error) {
+                        return_value = "false";
+                        console.log(comment("Error in API_1184_11.SetValue: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API_1184_11.SetValue: {0}".format(error.message));
                     }
-                    var_ret = _window._API.LMSGetValue(element);
-                    console.log("API.LMSGetValue({0});{1}".format(param(element), comment(param(var_ret), start)));
-                    noerror = false;
-                    if ((noerror = !(var_ret === "" && testError()))) {
-                        if (element === "cmi.suspend_data") {
-                            if (var_ret !== "") {
-                                try {
-                                    var_ret = JSON.parse(var_ret);
-                                    if (var_ret.length === 3) {
-                                        if (var_ret[0] !== null) { SCO_in_use = moment(var_ret[0]); }
-                                        var_ret = var_ret[2];
-                                    } else if (var_ret.length === 2) {
-                                        SCO_in_use = moment(var_ret[0]);
-                                        var_ret = var_ret[1];
-                                    }
-                                } catch (e) { }
+                    return return_value;
+                },
+                Commit: function(parameter) {
+                    try {
+                        var return_value;
+                        if (scormPlayerConfig.commitOnlyChanges && !changes) {
+                            return_value = "true";
+                            console.log(comment("No changes to commit"));
+                            console.log("\t\\\\API_1184_11.Commit({0});{1}".format(param(parameter), comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        return_value = ev("API_1184_11.Commit({0})".format(param(parameter)));
+                        if ((noerror = return_value === "true")) {
+                            last_commit = moment();
+                            changes = false;
+                            if (scormPlayerConfig.autoCommitTime) {
+                                commit_timeout = clearTimeout(commit_timeout);
+                                commit_max_timeout = clearTimeout(commit_max_timeout);
                             }
-                            suspend_data = var_ret;
+                        } else {
+                            testError();
+                            alert("¡Ocurrio un error al guardar los datos verifica que tengas conexión a internet!");
                         }
-                        if (scormPlayerConfig.cache && !element.endsWith("._count")) { cache[element] = var_ret; }
-                        if (scormPlayerConfig.showCompleteBtn && element === "cmi.core.lesson_status" && var_ret === "completed") { createbtn(); }
+                    } catch (error) {
+                        return_value = "false";
+                        console.log(comment("Error in API_1184_11.Commit: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API_1184_11.Commit: {0}".format(error.message));
                     }
-                } catch (error) {
-                    var_ret = "";
-                    console.log(comment("Error in LMSGetLastError: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSGetLastError Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            LMSGetLastError: function() {
-                try {
-                    var start = moment(), var_ret;
-                    if (noerror) { var_ret = "0"; console.log("\t\\\\API.LMSGetLastError();{0}".format(comment(param(var_ret), start))); return var_ret; }
-                    var_ret = _window._API.LMSGetLastError();
-                    console.log("API.LMSGetLastError();{0}".format(comment(param(var_ret), start)));
-                } catch (error) {
-                    var_ret = "";
-                    console.log(comment("Error in LMSGetLastError: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSGetLastError Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            LMSGetErrorString: function(errorCode) {
-                try {
-                    var start = moment();
-                    var var_ret = _window._API.LMSGetErrorString(errorCode);
-                    console.log("API.LMSGetErrorString({0});{1}".format(param(errorCode), comment(param(var_ret), start)));
-                } catch (error) {
-                    var_ret = "";
-                    console.log(comment("Error in LMSGetErrorString: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSGetErrorString Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            LMSGetDiagnostic: function(errorCode) {
-                try {
-                    var start = moment();
-                    var var_ret = _window._API.LMSGetDiagnostic(errorCode);
-                    console.log("API.LMSGetDiagnostic({0});{1}".format(param(errorCode), comment(param(var_ret), start)));
-                } catch (error) {
-                    var_ret = "";
-                    console.log(comment("Error in LMSGetDiagnostic: {0}".format(error.message)));
-                    alert("¡Ocurrio un error comunicate a RedEducativa!\LMSGetDiagnostic Error: {0}".format(error.message));
-                }
-                return var_ret;
-            },
-            version: "scormplayer"
-        };
+                    return return_value;
+                },
+                GetLastError: function() {
+                    try {
+                        if (noerror) {
+                            var return_value = "0";
+                            console.log("\t\\\\API.LMSGetLastError();{0}".format(comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        return ev("API_1184_11.GetLastError()");
+                    } catch (error) {
+                        console.log(comment("Error in API_1184_11.GetLastError: {0}".format(error.message)));
+                        return "";
+                    }
+                },
+                GetErrorString: function(parameter) {
+                    try { return ev("API_1184_11.GetErrorString({0})".format(param(parameter))); }
+                    catch (error) {
+                        console.log(comment("Error in API_1184_11.GetErrorString: {0}".format(error.message)));
+                        return "";
+                    }
+                },
+                GetDiagnostic: function(parameter) {
+                    try { return ev("API_1184_11.GetDiagnostic({0})".format(param(parameter))); }
+                    catch (error) {
+                        console.log(comment("Error in API_1184_11.GetDiagnostic: {0}".format(error.message)));
+                        return "";
+                    }
+                },
+                version: "1.0.20170526"
+            };
+        } else {
+            if (!_window.API) {
+                console.log(comment("API NOT found!!"));
+                var _cmi;
+                API = {
+                    LMSInitialize: function() {
+                        _cmi = {
+                            "cmi.suspend_data": "",
+                            "cmi.core.lesson_mode": "credit",
+                            "cmi.core.lesson_location": "",
+                            "cmi.core.student_id": "0",
+                            "cmi.core.student_name": "liga directa",
+                            "cmi.core.entry": "ab-initio",
+                            "cmi.core.lesson_status": "not attempted"
+                        };
+                        return "true";
+                    },
+                    LMSFinish: function() { return "true"; },
+                    LMSCommit: function() { return "true"; },
+                    LMSSetValue: function(element, value) {
+                        _cmi[element] = value;
+                        return "true";
+                    },
+                    LMSGetValue: function(element) { return _cmi[element]; },
+                    LMSGetLastError: function() { return "0"; },
+                    LMSGetDiagnostic: function() { return ""; },
+                    version: "0.0.20170526"
+                };
+            } else { API = _window.API;}
+            ev("API.version");
+            _window.API = window.API = {
+                LMSInitialize: function(parameter) {
+                    try {
+                        var return_value = ev("API.LMSInitialize({0})".format(param(parameter)));
+                        if ((noerror = return_value === "true")) {
+                            last_commit = moment();
+                            window.API.LMSGetValue("cmi.suspend_data");
+                            if (SCO_in_use && SCO_in_use.add(5, "minutes") > moment()) {
+                                console.log(comment("SCO already launched"));
+                                alert(
+                                    "Ya se esta mostrando un curso en otra ventana, favor de cerrarla y volver a ingresar\nO espera {0} minutos".format(
+                                        moment.duration(SCO_in_use - moment()).format("mm:ss")
+                                    )
+                                );
+                                return_value = "false";
+                                window.API.LMSFinish("");
+                            } else {
+                                state = states.Running;
+                                saveInit(true);
+                                window.API.LMSGetValue("cmi.core.student_id");
+                                window.API.LMSGetValue("cmi.core.student_name");
+                                window.API.LMSGetValue("cmi.core.lesson_mode");
+                                entry = window.API.LMSGetValue("cmi.core.entry");
+                                window.API.LMSGetValue("cmi.core.credit");
+                                window.API.LMSGetValue("cmi.core.lesson_status");
+                                window.API.LMSGetValue("cmi.core.lesson_location");
+                                window.API.LMSGetValue("cmi.core.total_time");
+                                setInterval(function() { saveInit(true); window.API.LMSCommit(""); }, 225000);
+                                if (entry === "ab-initio") {
+                                    window.API.LMSSetValue("cmi.core.exit", "suspend");
+                                    window.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                                } else if (entry === "resume") { windowAPI.LMSSetValue("cmi.core.exit", "suspend"); }
+                                window.API.LMSCommit("");
+                            }
+                            cmi.savelog();
+                        } else {
+                            testError();
+                            alert("¡Ocurrio un error al inicializar la comunicación con la plataforma!");
+                            window.API.LMSFinish("");
+                        }
+                    } catch (error) {
+                        return_value = "false";
+                        console.log(comment("Error in API.LMSInitialize: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSInitialize: {0}".format(error.message));
+                    }
+                    return return_value;
+                },
+                LMSFinish: function(parameter) {
+                    try {
+                        if (state === states.Running) {
+                            console.log(comment("Auto set cmi.core.exit state"));
+                            if (API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { API.LMSSetValue("cmi.core.exit", "suspend"); }
+                            else { API.LMSSetValue("cmi.core.exit", ""); }
+                            saveInit(false);
+                        }
+                        var return_value = ev("API.LMSFinish({0})".format(param(parameter)));
+                        if ((noerror = return_value === "true")) {
+                            state = states.Terminated;
+                            commit_timeout = clearTimeout(commit_timeout); commit_timeout = undefined;
+                            commit_max_timeout = clearTimeout(commit_max_timeout); commit_max_timeout = undefined;
+                            setTimeout(function() { document.close(); }, 0);
+                            sleep(1000);
+                        } else {
+                            testError();
+                            alert("¡Ocurrio un error al finalizar la comunicación con la plataforma!");
+                        }
+                        cmi.savelog();
+                    } catch (error) {
+                        return_value = "false";
+                        console.log(comment("Error in API.LMSFinish: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSFinish: {0}".format(error.message));
+                    }
+                    return return_value;
+                },
+                LMSGetValue: function(parameter) {
+                    try {
+                        var return_value = cache[parameter];
+                        if (state === states.Running && return_value !== undefined) {
+                            console.log(comment("Return value from cache"));
+                            console.log("\t\\\\API.LMSGetValue({0});{1}".format(param(parameter), comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        return_value = ev("API.LMSGetValue({0})".format(param(parameter)));
+                        noerror = false;
+                        if ((noerror = !(return_value === "" && testError()))) {
+                            if (parameter === "cmi.suspend_data") {
+                                if (return_value !== "") {
+                                    try {
+                                        return_value = JSON.parse(return_value);
+                                        if (return_value.length === 3) {
+                                            if (return_value[0] !== null) { SCO_in_use = moment(return_value[0]); }
+                                            return_value = return_value[2];
+                                        } else if (return_value.length === 2) {
+                                            SCO_in_use = moment(return_value[0]);
+                                            return_value = return_value[1];
+                                        }
+                                    } catch (e) { }
+                                }
+                                suspend_data = return_value;
+                            }
+                            if (scormPlayerConfig.cache && !parameter.endsWith("._count")) { cache[parameter] = return_value; }
+                            if (scormPlayerConfig.showCompleteBtn && parameter === "cmi.core.lesson_status" && return_value === "completed") { createbtn(); }
+                        }
+                    } catch (error) {
+                        return_value = "";
+                        console.log(comment("Error in API.LMSGetValue: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSGetValue: {0}".format(error.message));
+                    }
+                    return return_value;
+                },
+                LMSSetValue: function(parameter_1, parameter_2, persist) {
+                    var tmp_value, return_value;
+                    try {
+                        if (
+                            scormPlayerConfig.cache
+                            && cache[parameter_1] === undefined
+                            && parameter_1 !== "cmi.core.exit"
+                            && parameter_1 !== "cmi.core.session_time"
+                            && !parameter_1.startsWith("cmi.interactions.")
+                        ) {
+                            console.log(comment("Check current value before set"));
+                            window.API.LMSGetValue(parameter_1);
+                        }
+                        if (entry === "" && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "incomplete") {
+                            console.log(comment("Block change lesson_status"));
+                            return_value = "true";
+                            console.log("\t\\\\API.LMSSetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        if (state === states.Running && cache[parameter_1] === parameter_2 && !persist) {
+                            console.log(comment("No change data"));
+                            console.log("\t\\\\API.LMSSetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
+                            return "true";
+                        }
+                        tmp_value = parameter_1 === "cmi.suspend_data" ? JSON.stringify([SCO_in_use, parser, parameter_2]) : parameter_2;
+                        return_value = ev("API.LMSSetValue({0}, {1})".format(param(parameter_1), param(tmp_value)));
+                        if ((noerror = return_value === "true")) {
+                            changes = true;
+                            if (scormPlayerConfig.autoCommitTime) {
+                                clearTimeout(commit_timeout);
+                                commit_timeout = setTimeout(
+                                    function() { console.log(comment("Auto commit")); window.API.LMSCommit(""); },
+                                    scormPlayerConfig.autoCommitTime
+                                );
+                                if (!commit_max_timeout) {
+                                    commit_max_timeout = setTimeout(
+                                        function() { console.log(comment("Timeout 60secs without commit")); window.API.LMSCommit(""); },
+                                        scormPlayerConfig.autoCommitTime * 2
+                                    );
+                                }
+                            }
+                            if (scormPlayerConfig.cache) { cache[parameter_1] = parameter_2; }
+                            if (parameter_1 === "cmi.suspend_data") { suspend_data = parameter_2; }
+                            if (scormPlayerConfig.showCompleteBtn && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "completed") { createbtn(); }
+                        } else { testError(); }
+                    } catch (error) {
+                        return_value = "false";
+                        console.log(comment("Error in API.LMSSetValue: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSSetValue: {0}".format(error.message));
+                    }
+                    return return_value;
+                },
+                LMSCommit: function(parameter) {
+                    try {
+                        var return_value;
+                        if (scormPlayerConfig.commitOnlyChanges && !changes) {
+                            return_value = "true";
+                            console.log(comment("No changes to commit"));
+                            console.log("\t\\\\API.LMSCommit({0});{1}".format(param(parameter), comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        return_value = ev("API.LMSCommit({0})".format(param(parameter)));
+                        if ((noerror = return_value === "true")) {
+                            last_commit = moment();
+                            changes = false;
+                            if (scormPlayerConfig.autoCommitTime) {
+                                commit_timeout = clearTimeout(commit_timeout);
+                                commit_max_timeout = clearTimeout(commit_max_timeout);
+                            }
+                        } else {
+                            testError();
+                            alert("¡Ocurrio un error al guardar los datos verifica que tengas conexión a internet!");
+                        }
+                        return return_value;
+                    } catch (error) {
+                        console.log(comment("Error in API.LMSCommit: {0}".format(error.message)));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSCommit: {0}".format(error.message));
+                        return "false";
+                    }
+                },
+                LMSGetLastError: function() {
+                    try {
+                        if (noerror) {
+                            var return_value = "0";
+                            console.log("\t\\\\API.LMSGetLastError();{0}".format(comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        return ev("API.LMSGetLastError()");
+                    } catch (error) {
+                        console.log(comment("Error in API.LMSGetLastError: {0}".format(error.message)));
+                        return "";
+                    }
+                },
+                LMSGetErrorString: function(parameter) {
+                    try { return ev("API.LMSGetErrorString({0})".format(param(parameter))); }
+                    catch (error) {
+                        console.log(comment("Error in API.LMSGetErrorString: {0}".format(error.message)));
+                        return "";
+                    }
+                },
+                LMSGetDiagnostic: function(parameter) {
+                    try { return ev("API.LMSGetDiagnostic({0})".format(param(parameter))); }
+                    catch (error) {
+                        console.log(comment("Error in API.LMSGetDiagnostic: {0}".format(error.message)));
+                        return "";
+                    }
+                },
+                version: "0.0.20170526"
+            };
+        }
+
         setInterval(
             function() {
                 if (moment() - last_commit >= 10800000) {
@@ -526,7 +743,7 @@ function scormPlayer() {
         addEventListener(window, "beforeunload", function(e) {
             //http://stackoverflow.com/questions/7255649/window-onbeforeunload-not-working
             console.log(comment("beforeunload"));
-            if (scormPlayerConfig.autoFinish && state === states.Initialized) {
+            if (scormPlayerConfig.autoFinish && state === states.Running) {
                 console.log(comment("Auto finish"));
                 API.LMSFinish("");
             }
@@ -591,7 +808,6 @@ function scormPlayer() {
             console.log(comment("FillScreen", startF));
         }
 
-
         cmi.log = console.log;
         window.focus();
 
@@ -640,7 +856,13 @@ function scormPlayer() {
         cmi.savelog();
     } catch (error) {
         console.log(comment("Error in scormPlayer: {0}".format(error.message)));
-        alert("¡Ocurrio un error comunicate a RedEducativa!\nscormPlayer Error: {0}".format(error.message));
+        alert("¡Ocurrio un error comunicate a RedEducativa!\nscormPlayer: {0}".format(error.message));
+    }
+    function ev(command) {
+        var start = moment();
+        var return_value = eval(command);
+        console.log("{0};{1}".format(command, comment(param(return_value), start)));
+        return return_value;
     }
     function resize() {
         //http://stackoverflow.com/questions/1373035/how-do-i-scale-one-rectangle-to-the-maximum-size-possible-within-another-rectang
