@@ -217,7 +217,7 @@ function scormPlayer() {
         console.log(comment("Parse userAgent: {0}".format(parser)));
 
         console.log(comment("Find API"));
-        for (var attempt = 0, step = 0; !_window[apiname] && attempt < 7 && step < 3; attempt++) {
+        for (var attempt = 0, step = 0; !_window[scormPlayerConfig.APIname] && attempt < 7 && step < 3; attempt++) {
             if (_window.parent && _window.parent !== _window) {
                 apisource += ".parent";
                 console.log(comment("window.parent"));
@@ -242,7 +242,12 @@ function scormPlayer() {
         }
         ev("{0}.location.href".format(apisource));
         ev("{0}.document.referrer".format(apisource));
-
+        var client = ev("localStorage.getItem({0})".format(param("client")));
+        if (client === null || client === "" || client === undefined) {
+            client = [newguid(), moment().format("YYYY-MM-DDThh:mm:ss.SSSZ")];
+            ev("localStorage.setItem({0})".format(param(JSON.stringify(client))));
+        } else { client = JSON.parse(client); }
+        
         var noerror = false;
         if (scormPlayerConfig.APIname === "API_1184_11") {
             API_1184_11 = _window.API_1184_11;
@@ -306,8 +311,8 @@ function scormPlayer() {
                     try {
                         if (state === states.Running) {
                             console.log(comment("Auto set cmi.core.exit state"));
-                            if (API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { API.LMSSetValue("cmi.core.exit", "suspend"); }
-                            else { API.LMSSetValue("cmi.core.exit", ""); }
+                            if (window.API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { winodw.API.LMSSetValue("cmi.core.exit", "suspend"); }
+                            else { window.API.LMSSetValue("cmi.core.exit", ""); }
                             saveInit(false);
                         }
                         var return_value = ev("API_1184_11.Terminate({0})".format(param(parameter)));
@@ -535,7 +540,7 @@ function scormPlayer() {
                                 if (entry === "ab-initio") {
                                     window.API.LMSSetValue("cmi.core.exit", "suspend");
                                     window.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
-                                } else if (entry === "resume") { windowAPI.LMSSetValue("cmi.core.exit", "suspend"); }
+                                } else if (entry === "resume") { window.API.LMSSetValue("cmi.core.exit", "suspend"); }
                                 window.API.LMSCommit("");
                             }
                             cmi.savelog();
@@ -555,8 +560,8 @@ function scormPlayer() {
                     try {
                         if (state === states.Running) {
                             console.log(comment("Auto set cmi.core.exit state"));
-                            if (API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { API.LMSSetValue("cmi.core.exit", "suspend"); }
-                            else { API.LMSSetValue("cmi.core.exit", ""); }
+                            if (window.API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { window.API.LMSSetValue("cmi.core.exit", "suspend"); }
+                            else { window.API.LMSSetValue("cmi.core.exit", ""); }
                             saveInit(false);
                         }
                         var return_value = ev("API.LMSFinish({0})".format(param(parameter)));
@@ -615,7 +620,7 @@ function scormPlayer() {
                     return return_value;
                 },
                 LMSSetValue: function(parameter_1, parameter_2, persist) {
-                    var tmp_value, return_value;
+                    var tmp_value, return_value = "true";
                     try {
                         if (
                             scormPlayerConfig.cache
@@ -629,7 +634,6 @@ function scormPlayer() {
                         }
                         if (entry === "" && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "incomplete") {
                             console.log(comment("Block change lesson_status"));
-                            return_value = "true";
                             console.log("\t\\\\API.LMSSetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
                             return return_value;
                         }
@@ -668,9 +672,8 @@ function scormPlayer() {
                 },
                 LMSCommit: function(parameter) {
                     try {
-                        var return_value;
+                        var return_value = "true";
                         if (scormPlayerConfig.commitOnlyChanges && !changes) {
-                            return_value = "true";
                             console.log(comment("No changes to commit"));
                             console.log("\t\\\\API.LMSCommit({0});{1}".format(param(parameter), comment(param(return_value), moment())));
                             return return_value;
@@ -729,8 +732,8 @@ function scormPlayer() {
             function() {
                 if (moment() - last_commit >= 10800000) {
                     console.log(comment("Innactive timeout 3Hrs"));
-                    API.LMSSetValue("cmi.core.exit", "time-out");
-                    API.LMSFinish("");
+                    window.API.LMSSetValue("cmi.core.exit", "time-out");
+                    window.API.LMSFinish("");
                 }
             }, 60000
         );
@@ -745,7 +748,7 @@ function scormPlayer() {
             console.log(comment("beforeunload"));
             if (scormPlayerConfig.autoFinish && state === states.Running) {
                 console.log(comment("Auto finish"));
-                API.LMSFinish("");
+                window.API.LMSFinish("");
             }
             cmi.savelog();
             _window.API = _window._API;
@@ -843,15 +846,10 @@ function scormPlayer() {
         cmi.savelog();
 
 
-        var client = localStorage.getItem("client");
-        if (client === null || client === "" || client === undefined) {
-            client = [newguid(), moment().format("YYYY-MM-DDThh:mm:ss.SSSZ")];
-            localStorage.setItem("client", JSON.stringify(client));
-        } else { client = JSON.parse(client); }
-        console.log("localStorage.getItem({0});{1}".format(param("client"), comment(param(JSON.stringify(client)))));
+
         if (scormPlayerConfig.autoInitialize) {
             console.log(comment("Auto initialize"));
-            API.LMSInitialize("");
+            window.API.LMSInitialize("");
         }
         cmi.savelog();
     } catch (error) {
@@ -928,10 +926,10 @@ function scormPlayer() {
         );
     }
     function testError() {
-        var error = API.LMSGetLastError();
+        var error = window.API.LMSGetLastError();
         if (error !== "0") {
-            API.LMSGetErrorString(error);
-            API.LMSGetDiagnostic("");
+            window.API.LMSGetErrorString(error);
+            window.API.LMSGetDiagnostic("");
             return true;
         }
     }
@@ -943,7 +941,7 @@ function scormPlayer() {
     }
     function saveInit(inUse) {
         if (inUse) { SCO_in_use = moment(); } else { SCO_in_use = undefined; }
-        API.LMSSetValue("cmi.suspend_data", suspend_data, true);
+        window.API.LMSSetValue("cmi.suspend_data", suspend_data, true);
         cmi.savelog();
         console.log(comment("SaveInit"));
     }
