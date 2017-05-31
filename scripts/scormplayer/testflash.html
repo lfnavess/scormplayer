@@ -3,7 +3,7 @@
 	<head>
 		<title>testflash</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<script type="text/javascript" src="swfobject.js"></script>
+		<script type="text/javascript" src="../swfobject/swfobject.js"></script>
 		<script type="text/javascript">
 			<!-- Adobe recomienda a los desarrolladores utilizar SWFObject2 para la detección de Flash Player. -->
 			<!-- Para obtener más información, consulte la página del objeto SWFObject en Google Code (http://code.google.com/p/swfobject/). -->
@@ -38,7 +38,7 @@
 				flashvars, params, attributes);
                 
             function getback(){ 
-                location.replace(location.href.replace("scripts/scormplayer/testflash", "index_lms"));
+                location.replace(document.referrer);
             }
 		</script>
 	</head>

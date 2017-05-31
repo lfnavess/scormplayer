@@ -119,12 +119,13 @@ if (scormPlayerConfig.testFlash === undefined) { scormPlayerConfig.testFlash = f
 if (scormPlayerConfig.APIname === undefined) { scormPlayerConfig.APIname = "API"; }
 if (scormPlayerConfig.showCompleteBtn === undefined) { scormPlayerConfig.showCompleteBtn = false; }
 if (scormPlayerConfig.scale === undefined) { scormPlayerConfig.scale = false; }
+
 if (scormPlayerConfig.testFlash && document.referrer.indexOf("testflash.html") === -1) {
-    location.replace(location.href.replace("index_lms", "scripts/scormplayer/testflash"));
-    //location.href("http://www.rededucativa.com.mx/ContentData/content/5/getlog/testflash.html");
+    location.replace(location.href.replace(scormPlayerConfig.testFlash, "scripts/scormplayer/testflash.html"));
 } else { scormPlayer(); }
+
 scormPlayer.reportTime = function() {
-    API.LMSSetValue("cmi.core.session_time", moment.duration(moment() - scormPlayer.start).format("HH:mm:ss.SS"));
+    API.LMSSetValue("cmi.core.session_time", this.moment.duration(this.moment() - scormPlayer.start).format("HH:mm:ss.SS"));
 }
 
 
@@ -136,6 +137,7 @@ function scormPlayer() {
             state = states.NotInitialized, parser, exitFullscreen, requestFullscreen, moment = window.moment, Modernizr = window.Modernizr,
             UAParser = window.UAParser, API, API_1184_11, apisource = "window";
         delete window.moment; delete window.UAParser;
+        scormPlayer.moment = moment;
         moment.duration.fn.format = function(input) {
             var output = input, milliseconds = this.asMilliseconds(), totalMilliseconds = 0;
             var replaceRegexps = {
@@ -477,7 +479,7 @@ function scormPlayer() {
                         return "";
                     }
                 },
-                version: "1.0.20170526"
+                version: "1.0.20170531"
             };
         } else {
             if (!_window.API) {
@@ -724,10 +726,10 @@ function scormPlayer() {
                         return "";
                     }
                 },
-                version: "0.0.20170526"
+                version: "0.0.20170531"
             };
         }
-
+        ev("window.API.version");
         setInterval(
             function() {
                 if (moment() - last_commit >= 10800000) {
