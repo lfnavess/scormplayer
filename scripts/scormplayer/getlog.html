@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html style="overflow: hidden;background-color: black;">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="../FileSaver/FileSaver.js" charset="utf-8"></script>
+	<script>
+		function buttonclick(){
+			var log_location = localStorage.getItem("log_location");
+			log_location = log_location === null || isNaN(localStorage.getItem("log_location")) ? 0 : Number(log_location);
+			var texttmp = log_location + "\r\n\r\n";
+			for(var i = 0, item; i < 15; i++){ 
+				item = localStorage.getItem("log_" + i);
+				if(item != null){ texttmp += JSON.parse(item).join("\n") + "\r\n\r\n\r\n\r\n"; }
+			}
+			saveAs(new Blob([texttmp], {type: "text/plain;charset=utf-8"}), "log.txt");
+		}
+	</script>
+</head>
+<body>
+	<button type="button" onclick="buttonclick()"> Guardar log</button>
+</body>
+</html>

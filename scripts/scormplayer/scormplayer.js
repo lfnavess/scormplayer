@@ -1,4 +1,35 @@
 //Polyfills
+if (!window.JSON) {
+    //https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/JSON
+    //https://github.com/douglascrockford/JSON-js/blob/master/json2.js
+    //IE 11 in compatibility mode
+    window.JSON = {
+        parse: function(sJSON) { return eval("(" + sJSON + ")"); },
+        stringify: function(vContent) {
+            if (vContent instanceof Object) {
+                var sOutput = "";
+                if (vContent.constructor === Array) {
+                    for (var nId = 0; nId < vContent.length; sOutput += this.stringify(vContent[nId]) + ",", nId++);
+                    return "[" + sOutput.substr(0, sOutput.length - 1) + "]";
+                }
+                if (vContent.toString !== Object.prototype.toString) { return "\"" + vContent.toString().replace(/"/g, "\\$&") + "\""; }
+                for (var sProp in vContent) { sOutput += "\"" + sProp.replace(/"/g, "\\$&") + "\":" + this.stringify(vContent[sProp]) + ","; }
+                return "{" + sOutput.substr(0, sOutput.length - 1) + "}";
+            }
+            return typeof vContent === "string" ? "\"" + vContent.replace(/"/g, "\\$&") + "\"" : String(vContent);
+        }
+    };
+}
+if (!window.Promise){
+    //IE11
+    !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):t.ES6Promise=e()}(this,function(){"use strict";function t(t){return"function"==typeof t||"object"==typeof t&&null!==t}function e(t){return"function"==typeof t}function n(t){I=t}function r(t){J=t}function o(){return function(){return process.nextTick(a)}}function i(){return"undefined"!=typeof H?function(){H(a)}:c()}function s(){var t=0,e=new V(a),n=document.createTextNode("");return e.observe(n,{characterData:!0}),function(){n.data=t=++t%2}}function u(){var t=new MessageChannel;return t.port1.onmessage=a,function(){return t.port2.postMessage(0)}}function c(){var t=setTimeout;return function(){return t(a,1)}}function a(){for(var t=0;t<G;t+=2){var e=$[t],n=$[t+1];e(n),$[t]=void 0,$[t+1]=void 0}G=0}function f(){try{var t=require,e=t("vertx");return H=e.runOnLoop||e.runOnContext,i()}catch(n){return c()}}function l(t,e){var n=arguments,r=this,o=new this.constructor(p);void 0===o[et]&&k(o);var i=r._state;return i?!function(){var t=n[i-1];J(function(){return x(i,o,t,r._result)})}():E(r,o,t,e),o}function h(t){var e=this;if(t&&"object"==typeof t&&t.constructor===e)return t;var n=new e(p);return g(n,t),n}function p(){}function v(){return new TypeError("You cannot resolve a promise with itself")}function d(){return new TypeError("A promises callback cannot return that same promise.")}function _(t){try{return t.then}catch(e){return it.error=e,it}}function y(t,e,n,r){try{t.call(e,n,r)}catch(o){return o}}function m(t,e,n){J(function(t){var r=!1,o=y(n,e,function(n){r||(r=!0,e!==n?g(t,n):S(t,n))},function(e){r||(r=!0,j(t,e))},"Settle: "+(t._label||" unknown promise"));!r&&o&&(r=!0,j(t,o))},t)}function b(t,e){e._state===rt?S(t,e._result):e._state===ot?j(t,e._result):E(e,void 0,function(e){return g(t,e)},function(e){return j(t,e)})}function w(t,n,r){n.constructor===t.constructor&&r===l&&n.constructor.resolve===h?b(t,n):r===it?(j(t,it.error),it.error=null):void 0===r?S(t,n):e(r)?m(t,n,r):S(t,n)}function g(e,n){e===n?j(e,v()):t(n)?w(e,n,_(n)):S(e,n)}function A(t){t._onerror&&t._onerror(t._result),T(t)}function S(t,e){t._state===nt&&(t._result=e,t._state=rt,0!==t._subscribers.length&&J(T,t))}function j(t,e){t._state===nt&&(t._state=ot,t._result=e,J(A,t))}function E(t,e,n,r){var o=t._subscribers,i=o.length;t._onerror=null,o[i]=e,o[i+rt]=n,o[i+ot]=r,0===i&&t._state&&J(T,t)}function T(t){var e=t._subscribers,n=t._state;if(0!==e.length){for(var r=void 0,o=void 0,i=t._result,s=0;s<e.length;s+=3)r=e[s],o=e[s+n],r?x(n,r,o,i):o(i);t._subscribers.length=0}}function M(){this.error=null}function P(t,e){try{return t(e)}catch(n){return st.error=n,st}}function x(t,n,r,o){var i=e(r),s=void 0,u=void 0,c=void 0,a=void 0;if(i){if(s=P(r,o),s===st?(a=!0,u=s.error,s.error=null):c=!0,n===s)return void j(n,d())}else s=o,c=!0;n._state!==nt||(i&&c?g(n,s):a?j(n,u):t===rt?S(n,s):t===ot&&j(n,s))}function C(t,e){try{e(function(e){g(t,e)},function(e){j(t,e)})}catch(n){j(t,n)}}function O(){return ut++}function k(t){t[et]=ut++,t._state=void 0,t._result=void 0,t._subscribers=[]}function Y(t,e){this._instanceConstructor=t,this.promise=new t(p),this.promise[et]||k(this.promise),B(e)?(this._input=e,this.length=e.length,this._remaining=e.length,this._result=new Array(this.length),0===this.length?S(this.promise,this._result):(this.length=this.length||0,this._enumerate(),0===this._remaining&&S(this.promise,this._result))):j(this.promise,q())}function q(){return new Error("Array Methods must be provided an Array")}function F(t){return new Y(this,t).promise}function D(t){var e=this;return new e(B(t)?function(n,r){for(var o=t.length,i=0;i<o;i++)e.resolve(t[i]).then(n,r)}:function(t,e){return e(new TypeError("You must pass an array to race."))})}function K(t){var e=this,n=new e(p);return j(n,t),n}function L(){throw new TypeError("You must pass a resolver function as the first argument to the promise constructor")}function N(){throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.")}function U(t){this[et]=O(),this._result=this._state=void 0,this._subscribers=[],p!==t&&("function"!=typeof t&&L(),this instanceof U?C(this,t):N())}function W(){var t=void 0;if("undefined"!=typeof global)t=global;else if("undefined"!=typeof self)t=self;else try{t=Function("return this")()}catch(e){throw new Error("polyfill failed because global object is unavailable in this environment")}var n=t.Promise;if(n){var r=null;try{r=Object.prototype.toString.call(n.resolve())}catch(e){}if("[object Promise]"===r&&!n.cast)return}t.Promise=U}var z=void 0;z=Array.isArray?Array.isArray:function(t){return"[object Array]"===Object.prototype.toString.call(t)};var B=z,G=0,H=void 0,I=void 0,J=function(t,e){$[G]=t,$[G+1]=e,G+=2,2===G&&(I?I(a):tt())},Q="undefined"!=typeof window?window:void 0,R=Q||{},V=R.MutationObserver||R.WebKitMutationObserver,X="undefined"==typeof self&&"undefined"!=typeof process&&"[object process]"==={}.toString.call(process),Z="undefined"!=typeof Uint8ClampedArray&&"undefined"!=typeof importScripts&&"undefined"!=typeof MessageChannel,$=new Array(1e3),tt=void 0;tt=X?o():V?s():Z?u():void 0===Q&&"function"==typeof require?f():c();var et=Math.random().toString(36).substring(16),nt=void 0,rt=1,ot=2,it=new M,st=new M,ut=0;return Y.prototype._enumerate=function(){for(var t=this.length,e=this._input,n=0;this._state===nt&&n<t;n++)this._eachEntry(e[n],n)},Y.prototype._eachEntry=function(t,e){var n=this._instanceConstructor,r=n.resolve;if(r===h){var o=_(t);if(o===l&&t._state!==nt)this._settledAt(t._state,e,t._result);else if("function"!=typeof o)this._remaining--,this._result[e]=t;else if(n===U){var i=new n(p);w(i,t,o),this._willSettleAt(i,e)}else this._willSettleAt(new n(function(e){return e(t)}),e)}else this._willSettleAt(r(t),e)},Y.prototype._settledAt=function(t,e,n){var r=this.promise;r._state===nt&&(this._remaining--,t===ot?j(r,n):this._result[e]=n),0===this._remaining&&S(r,this._result)},Y.prototype._willSettleAt=function(t,e){var n=this;E(t,void 0,function(t){return n._settledAt(rt,e,t)},function(t){return n._settledAt(ot,e,t)})},U.all=F,U.race=D,U.resolve=h,U.reject=K,U._setScheduler=n,U._setAsap=r,U._asap=J,U.prototype={constructor:U,then:l,"catch":function(t){return this.then(null,t)}},U.polyfill=W,U.Promise=U,U.polyfill(),U});
+}
+if (!window.fetch){
+    //! http://github.github.io/fetch/
+    //! 16/06/2017
+    //IE11
+    !function(t){"use strict";function e(t){if("string"!=typeof t&&(t=String(t)),/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(t))throw new TypeError("Invalid character in header field name");return t.toLowerCase()}function r(t){return"string"!=typeof t&&(t=String(t)),t}function o(t){var e={next:function(){var e=t.shift();return{done:void 0===e,value:e}}};return m.iterable&&(e[Symbol.iterator]=function(){return e}),e}function n(t){this.map={},t instanceof n?t.forEach(function(t,e){this.append(e,t)},this):Array.isArray(t)?t.forEach(function(t){this.append(t[0],t[1])},this):t&&Object.getOwnPropertyNames(t).forEach(function(e){this.append(e,t[e])},this)}function i(t){return t.bodyUsed?Promise.reject(new TypeError("Already read")):void(t.bodyUsed=!0)}function s(t){return new Promise(function(e,r){t.onload=function(){e(t.result)},t.onerror=function(){r(t.error)}})}function a(t){var e=new FileReader,r=s(e);return e.readAsArrayBuffer(t),r}function u(t){var e=new FileReader,r=s(e);return e.readAsText(t),r}function h(t){for(var e=new Uint8Array(t),r=new Array(e.length),o=0;o<e.length;o++)r[o]=String.fromCharCode(e[o]);return r.join("")}function f(t){if(t.slice)return t.slice(0);var e=new Uint8Array(t.byteLength);return e.set(new Uint8Array(t)),e.buffer}function d(){return this.bodyUsed=!1,this._initBody=function(t){if(this._bodyInit=t,t)if("string"==typeof t)this._bodyText=t;else if(m.blob&&Blob.prototype.isPrototypeOf(t))this._bodyBlob=t;else if(m.formData&&FormData.prototype.isPrototypeOf(t))this._bodyFormData=t;else if(m.searchParams&&URLSearchParams.prototype.isPrototypeOf(t))this._bodyText=t.toString();else if(m.arrayBuffer&&m.blob&&v(t))this._bodyArrayBuffer=f(t.buffer),this._bodyInit=new Blob([this._bodyArrayBuffer]);else{if(!m.arrayBuffer||!ArrayBuffer.prototype.isPrototypeOf(t)&&!B(t))throw new Error("unsupported BodyInit type");this._bodyArrayBuffer=f(t)}else this._bodyText="";this.headers.get("content-type")||("string"==typeof t?this.headers.set("content-type","text/plain;charset=UTF-8"):this._bodyBlob&&this._bodyBlob.type?this.headers.set("content-type",this._bodyBlob.type):m.searchParams&&URLSearchParams.prototype.isPrototypeOf(t)&&this.headers.set("content-type","application/x-www-form-urlencoded;charset=UTF-8"))},m.blob&&(this.blob=function(){var t=i(this);if(t)return t;if(this._bodyBlob)return Promise.resolve(this._bodyBlob);if(this._bodyArrayBuffer)return Promise.resolve(new Blob([this._bodyArrayBuffer]));if(this._bodyFormData)throw new Error("could not read FormData body as blob");return Promise.resolve(new Blob([this._bodyText]))},this.arrayBuffer=function(){return this._bodyArrayBuffer?i(this)||Promise.resolve(this._bodyArrayBuffer):this.blob().then(a)}),this.text=function(){var t=i(this);if(t)return t;if(this._bodyBlob)return u(this._bodyBlob);if(this._bodyArrayBuffer)return Promise.resolve(h(this._bodyArrayBuffer));if(this._bodyFormData)throw new Error("could not read FormData body as text");return Promise.resolve(this._bodyText)},m.formData&&(this.formData=function(){return this.text().then(p)}),this.json=function(){return this.text().then(JSON.parse)},this}function y(t){var e=t.toUpperCase();return _.indexOf(e)>-1?e:t}function l(t,e){e=e||{};var r=e.body;if(t instanceof l){if(t.bodyUsed)throw new TypeError("Already read");this.url=t.url,this.credentials=t.credentials,e.headers||(this.headers=new n(t.headers)),this.method=t.method,this.mode=t.mode,r||null==t._bodyInit||(r=t._bodyInit,t.bodyUsed=!0)}else this.url=String(t);if(this.credentials=e.credentials||this.credentials||"omit",(e.headers||!this.headers)&&(this.headers=new n(e.headers)),this.method=y(e.method||this.method||"GET"),this.mode=e.mode||this.mode||null,this.referrer=null,("GET"===this.method||"HEAD"===this.method)&&r)throw new TypeError("Body not allowed for GET or HEAD requests");this._initBody(r)}function p(t){var e=new FormData;return t.trim().split("&").forEach(function(t){if(t){var r=t.split("="),o=r.shift().replace(/\+/g," "),n=r.join("=").replace(/\+/g," ");e.append(decodeURIComponent(o),decodeURIComponent(n))}}),e}function c(t){var e=new n,r=t.replace(/\r?\n[\t ]+/g," ");return r.split(/\r?\n/).forEach(function(t){var r=t.split(":"),o=r.shift().trim();if(o){var n=r.join(":").trim();e.append(o,n)}}),e}function b(t,e){e||(e={}),this.type="default",this.status=void 0===e.status?200:e.status,this.ok=this.status>=200&&this.status<300,this.statusText="statusText"in e?e.statusText:"OK",this.headers=new n(e.headers),this.url=e.url||"",this._initBody(t)}if(!t.fetch){var m={searchParams:"URLSearchParams"in t,iterable:"Symbol"in t&&"iterator"in Symbol,blob:"FileReader"in t&&"Blob"in t&&function(){try{return new Blob,!0}catch(t){return!1}}(),formData:"FormData"in t,arrayBuffer:"ArrayBuffer"in t};if(m.arrayBuffer)var w=["[object Int8Array]","[object Uint8Array]","[object Uint8ClampedArray]","[object Int16Array]","[object Uint16Array]","[object Int32Array]","[object Uint32Array]","[object Float32Array]","[object Float64Array]"],v=function(t){return t&&DataView.prototype.isPrototypeOf(t)},B=ArrayBuffer.isView||function(t){return t&&w.indexOf(Object.prototype.toString.call(t))>-1};n.prototype.append=function(t,o){t=e(t),o=r(o);var n=this.map[t];this.map[t]=n?n+","+o:o},n.prototype["delete"]=function(t){delete this.map[e(t)]},n.prototype.get=function(t){return t=e(t),this.has(t)?this.map[t]:null},n.prototype.has=function(t){return this.map.hasOwnProperty(e(t))},n.prototype.set=function(t,o){this.map[e(t)]=r(o)},n.prototype.forEach=function(t,e){for(var r in this.map)this.map.hasOwnProperty(r)&&t.call(e,this.map[r],r,this)},n.prototype.keys=function(){var t=[];return this.forEach(function(e,r){t.push(r)}),o(t)},n.prototype.values=function(){var t=[];return this.forEach(function(e){t.push(e)}),o(t)},n.prototype.entries=function(){var t=[];return this.forEach(function(e,r){t.push([r,e])}),o(t)},m.iterable&&(n.prototype[Symbol.iterator]=n.prototype.entries);var _=["DELETE","GET","HEAD","OPTIONS","POST","PUT"];l.prototype.clone=function(){return new l(this,{body:this._bodyInit})},d.call(l.prototype),d.call(b.prototype),b.prototype.clone=function(){return new b(this._bodyInit,{status:this.status,statusText:this.statusText,headers:new n(this.headers),url:this.url})},b.error=function(){var t=new b(null,{status:0,statusText:""});return t.type="error",t};var A=[301,302,303,307,308];b.redirect=function(t,e){if(-1===A.indexOf(e))throw new RangeError("Invalid status code");return new b(null,{status:e,headers:{location:t}})},t.Headers=n,t.Request=l,t.Response=b,t.fetch=function(t,e){return new Promise(function(r,o){var n=new l(t,e),i=new XMLHttpRequest;i.onload=function(){var t={status:i.status,statusText:i.statusText,headers:c(i.getAllResponseHeaders()||"")};t.url="responseURL"in i?i.responseURL:t.headers.get("X-Request-URL");var e="response"in i?i.response:i.responseText;r(new b(e,t))},i.onerror=function(){o(new TypeError("Network request failed"))},i.ontimeout=function(){o(new TypeError("Network request failed"))},i.open(n.method,n.url,!0),"include"===n.credentials?i.withCredentials=!0:"omit"===n.credentials&&(i.withCredentials=!1),"responseType"in i&&m.blob&&(i.responseType="blob"),n.headers.forEach(function(t,e){i.setRequestHeader(e,t)}),i.send("undefined"==typeof n._bodyInit?null:n._bodyInit)})},t.fetch.polyfill=!0}}("undefined"!=typeof self?self:this);
+}
 if (!Array.prototype.indexOf) {
     //https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/Array/indexOf
     //work in IE 11 compatibility view used by moment.js
@@ -39,27 +70,7 @@ if (!String.prototype.endsWith) {
         return lastIndex !== -1 && lastIndex === position;
     };
 }
-if (!window.JSON) {
-    //https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/JSON
-    //https://github.com/douglascrockford/JSON-js/blob/master/json2.js
-    //IE 11 in compatibility mode
-    window.JSON = {
-        parse: function(sJSON) { return eval("(" + sJSON + ")"); },
-        stringify: function(vContent) {
-            if (vContent instanceof Object) {
-                var sOutput = "";
-                if (vContent.constructor === Array) {
-                    for (var nId = 0; nId < vContent.length; sOutput += this.stringify(vContent[nId]) + ",", nId++);
-                    return "[" + sOutput.substr(0, sOutput.length - 1) + "]";
-                }
-                if (vContent.toString !== Object.prototype.toString) { return "\"" + vContent.toString().replace(/"/g, "\\$&") + "\""; }
-                for (var sProp in vContent) { sOutput += "\"" + sProp.replace(/"/g, "\\$&") + "\":" + this.stringify(vContent[sProp]) + ","; }
-                return "{" + sOutput.substr(0, sOutput.length - 1) + "}";
-            }
-            return typeof vContent === "string" ? "\"" + vContent.replace(/"/g, "\\$&") + "\"" : String(vContent);
-        }
-    };
-}
+
 
 //! moment.js
 //! version : 2.18.1
@@ -85,7 +96,12 @@ if (!window.JSON) {
  * Dual licensed under GPLv2 & MIT
  */
 (function(e, t) { "use strict"; var n = "0.7.12", r = "", i = "?", s = "function", o = "undefined", u = "object", a = "string", f = "major", l = "model", c = "name", h = "type", p = "vendor", d = "version", v = "architecture", m = "console", g = "mobile", y = "tablet", b = "smarttv", w = "wearable", E = "embedded", S = { extend: function(e, t) { var n = {}; for (var r in e) t[r] && t[r].length % 2 === 0 ? n[r] = t[r].concat(e[r]) : n[r] = e[r]; return n }, has: function(e, t) { return typeof e == "string" ? t.toLowerCase().indexOf(e.toLowerCase()) !== -1 : !1 }, lowerize: function(e) { return e.toLowerCase() }, major: function(e) { return typeof e === a ? e.replace(/[^\d\.]/g, "").split(".")[0] : t }, trim: function(e) { return e.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "") } }, x = { rgx: function() { var e, n = 0, r, i, a, f, l, c, h = arguments; while (n < h.length && !l) { var p = h[n], d = h[n + 1]; if (typeof e === o) { e = {}; for (a in d) d.hasOwnProperty(a) && (f = d[a], typeof f === u ? e[f[0]] = t : e[f] = t) } r = i = 0; while (r < p.length && !l) { l = p[r++].exec(this.getUA()); if (!!l) for (a = 0; a < d.length; a++)c = l[++i], f = d[a], typeof f === u && f.length > 0 ? f.length == 2 ? typeof f[1] == s ? e[f[0]] = f[1].call(this, c) : e[f[0]] = f[1] : f.length == 3 ? typeof f[1] === s && (!f[1].exec || !f[1].test) ? e[f[0]] = c ? f[1].call(this, c, f[2]) : t : e[f[0]] = c ? c.replace(f[1], f[2]) : t : f.length == 4 && (e[f[0]] = c ? f[3].call(this, c.replace(f[1], f[2])) : t) : e[f] = c ? c : t } n += 2 } return e }, str: function(e, n) { for (var r in n) if (typeof n[r] === u && n[r].length > 0) { for (var s = 0; s < n[r].length; s++)if (S.has(n[r][s], e)) return r === i ? t : r } else if (S.has(n[r], e)) return r === i ? t : r; return e } }, T = { browser: { oldsafari: { version: { "1.0": "/8", 1.2: "/1", 1.3: "/3", "2.0": "/412", "2.0.2": "/416", "2.0.3": "/417", "2.0.4": "/419", "?": "/" } } }, device: { amazon: { model: { "Fire Phone": ["SD", "KF"] } }, sprint: { model: { "Evo Shift 4G": "7373KT" }, vendor: { HTC: "APA", Sprint: "Sprint" } } }, os: { windows: { version: { ME: "4.90", "NT 3.11": "NT3.51", "NT 4.0": "NT4.0", 2e3: "NT 5.0", XP: ["NT 5.1", "NT 5.2"], Vista: "NT 6.0", 7: "NT 6.1", 8: "NT 6.2", 8.1: "NT 6.3", 10: ["NT 6.4", "NT 10.0"], RT: "ARM" } } } }, N = { browser: [[/(opera\smini)\/([\w\.-]+)/i, /(opera\s[mobiletab]+).+version\/([\w\.-]+)/i, /(opera).+version\/([\w\.]+)/i, /(opera)[\/\s]+([\w\.]+)/i], [c, d], [/(opios)[\/\s]+([\w\.]+)/i], [[c, "Opera Mini"], d], [/\s(opr)\/([\w\.]+)/i], [[c, "Opera"], d], [/(kindle)\/([\w\.]+)/i, /(lunascape|maxthon|netfront|jasmine|blazer)[\/\s]?([\w\.]+)*/i, /(avant\s|iemobile|slim|baidu)(?:browser)?[\/\s]?([\w\.]*)/i, /(?:ms|\()(ie)\s([\w\.]+)/i, /(rekonq)\/([\w\.]+)*/i, /(chromium|flock|rockmelt|midori|epiphany|silk|skyfire|ovibrowser|bolt|iron|vivaldi|iridium|phantomjs)\/([\w\.-]+)/i], [c, d], [/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i], [[c, "IE"], d], [/(edge)\/((\d+)?[\w\.]+)/i], [c, d], [/(yabrowser)\/([\w\.]+)/i], [[c, "Yandex"], d], [/(comodo_dragon)\/([\w\.]+)/i], [[c, /_/g, " "], d], [/(micromessenger)\/([\w\.]+)/i], [[c, "WeChat"], d], [/xiaomi\/miuibrowser\/([\w\.]+)/i], [d, [c, "MIUI Browser"]], [/\swv\).+(chrome)\/([\w\.]+)/i], [[c, /(.+)/, "$1 WebView"], d], [/android.+samsungbrowser\/([\w\.]+)/i, /android.+version\/([\w\.]+)\s+(?:mobile\s?safari|safari)*/i], [d, [c, "Android Browser"]], [/(chrome|omniweb|arora|[tizenoka]{5}\s?browser)\/v?([\w\.]+)/i, /(qqbrowser)[\/\s]?([\w\.]+)/i], [c, d], [/(uc\s?browser)[\/\s]?([\w\.]+)/i, /ucweb.+(ucbrowser)[\/\s]?([\w\.]+)/i, /juc.+(ucweb)[\/\s]?([\w\.]+)/i], [[c, "UCBrowser"], d], [/(dolfin)\/([\w\.]+)/i], [[c, "Dolphin"], d], [/((?:android.+)crmo|crios)\/([\w\.]+)/i], [[c, "Chrome"], d], [/;fbav\/([\w\.]+);/i], [d, [c, "Facebook"]], [/fxios\/([\w\.-]+)/i], [d, [c, "Firefox"]], [/version\/([\w\.]+).+?mobile\/\w+\s(safari)/i], [d, [c, "Mobile Safari"]], [/version\/([\w\.]+).+?(mobile\s?safari|safari)/i], [d, c], [/webkit.+?(mobile\s?safari|safari)(\/[\w\.]+)/i], [c, [d, x.str, T.browser.oldsafari.version]], [/(konqueror)\/([\w\.]+)/i, /(webkit|khtml)\/([\w\.]+)/i], [c, d], [/(navigator|netscape)\/([\w\.-]+)/i], [[c, "Netscape"], d], [/(swiftfox)/i, /(icedragon|iceweasel|camino|chimera|fennec|maemo\sbrowser|minimo|conkeror)[\/\s]?([\w\.\+]+)/i, /(firefox|seamonkey|k-meleon|icecat|iceape|firebird|phoenix)\/([\w\.-]+)/i, /(mozilla)\/([\w\.]+).+rv\:.+gecko\/\d+/i, /(polaris|lynx|dillo|icab|doris|amaya|w3m|netsurf|sleipnir)[\/\s]?([\w\.]+)/i, /(links)\s\(([\w\.]+)/i, /(gobrowser)\/?([\w\.]+)*/i, /(ice\s?browser)\/v?([\w\._]+)/i, /(mosaic)[\/\s]([\w\.]+)/i], [c, d]], cpu: [[/(?:(amd|x(?:(?:86|64)[_-])?|wow|win)64)[;\)]/i], [[v, "amd64"]], [/(ia32(?=;))/i], [[v, S.lowerize]], [/((?:i[346]|x)86)[;\)]/i], [[v, "ia32"]], [/windows\s(ce|mobile);\sppc;/i], [[v, "arm"]], [/((?:ppc|powerpc)(?:64)?)(?:\smac|;|\))/i], [[v, /ower/, "", S.lowerize]], [/(sun4\w)[;\)]/i], [[v, "sparc"]], [/((?:avr32|ia64(?=;))|68k(?=\))|arm(?:64|(?=v\d+;))|(?=atmel\s)avr|(?:irix|mips|sparc)(?:64)?(?=;)|pa-risc)/i], [[v, S.lowerize]]], device: [[/\((ipad|playbook);[\w\s\);-]+(rim|apple)/i], [l, p, [h, y]], [/applecoremedia\/[\w\.]+ \((ipad)/], [l, [p, "Apple"], [h, y]], [/(apple\s{0,1}tv)/i], [[l, "Apple TV"], [p, "Apple"]], [/(archos)\s(gamepad2?)/i, /(hp).+(touchpad)/i, /(hp).+(tablet)/i, /(kindle)\/([\w\.]+)/i, /\s(nook)[\w\s]+build\/(\w+)/i, /(dell)\s(strea[kpr\s\d]*[\dko])/i], [p, l, [h, y]], [/(kf[A-z]+)\sbuild\/[\w\.]+.*silk\//i], [l, [p, "Amazon"], [h, y]], [/(sd|kf)[0349hijorstuw]+\sbuild\/[\w\.]+.*silk\//i], [[l, x.str, T.device.amazon.model], [p, "Amazon"], [h, g]], [/\((ip[honed|\s\w*]+);.+(apple)/i], [l, p, [h, g]], [/\((ip[honed|\s\w*]+);/i], [l, [p, "Apple"], [h, g]], [/(blackberry)[\s-]?(\w+)/i, /(blackberry|benq|palm(?=\-)|sonyericsson|acer|asus|dell|huawei|meizu|motorola|polytron)[\s_-]?([\w-]+)*/i, /(hp)\s([\w\s]+\w)/i, /(asus)-?(\w+)/i], [p, l, [h, g]], [/\(bb10;\s(\w+)/i], [l, [p, "BlackBerry"], [h, g]], [/android.+(transfo[prime\s]{4,10}\s\w+|eeepc|slider\s\w+|nexus 7|padfone)/i], [l, [p, "Asus"], [h, y]], [/(sony)\s(tablet\s[ps])\sbuild\//i, /(sony)?(?:sgp.+)\sbuild\//i], [[p, "Sony"], [l, "Xperia Tablet"], [h, y]], [/(?:sony)?(?:(?:(?:c|d)\d{4})|(?:so[-l].+))\sbuild\//i], [[p, "Sony"], [l, "Xperia Phone"], [h, g]], [/\s(ouya)\s/i, /(nintendo)\s([wids3u]+)/i], [p, l, [h, m]], [/android.+;\s(shield)\sbuild/i], [l, [p, "Nvidia"], [h, m]], [/(playstation\s[34portablevi]+)/i], [l, [p, "Sony"], [h, m]], [/(sprint\s(\w+))/i], [[p, x.str, T.device.sprint.vendor], [l, x.str, T.device.sprint.model], [h, g]], [/(lenovo)\s?(S(?:5000|6000)+(?:[-][\w+]))/i], [p, l, [h, y]], [/(htc)[;_\s-]+([\w\s]+(?=\))|\w+)*/i, /(zte)-(\w+)*/i, /(alcatel|geeksphone|huawei|lenovo|nexian|panasonic|(?=;\s)sony)[_\s-]?([\w-]+)*/i], [p, [l, /_/g, " "], [h, g]], [/(nexus\s9)/i], [l, [p, "HTC"], [h, y]], [/(nexus\s6p)/i], [l, [p, "Huawei"], [h, g]], [/(microsoft);\s(lumia[\s\w]+)/i], [p, l, [h, g]], [/[\s\(;](xbox(?:\sone)?)[\s\);]/i], [l, [p, "Microsoft"], [h, m]], [/(kin\.[onetw]{3})/i], [[l, /\./g, " "], [p, "Microsoft"], [h, g]], [/\s(milestone|droid(?:[2-4x]|\s(?:bionic|x2|pro|razr))?(:?\s4g)?)[\w\s]+build\//i, /mot[\s-]?(\w+)*/i, /(XT\d{3,4}) build\//i, /(nexus\s6)/i], [l, [p, "Motorola"], [h, g]], [/android.+\s(mz60\d|xoom[\s2]{0,2})\sbuild\//i], [l, [p, "Motorola"], [h, y]], [/hbbtv\/\d+\.\d+\.\d+\s+\([\w\s]*;\s*(\w[^;]*);([^;]*)/i], [[p, S.trim], [l, S.trim], [h, b]], [/hbbtv.+maple;(\d+)/i], [[l, /^/, "SmartTV"], [p, "Samsung"], [h, b]], [/\(dtv[\);].+(aquos)/i], [l, [p, "Sharp"], [h, b]], [/android.+((sch-i[89]0\d|shw-m380s|gt-p\d{4}|gt-n\d+|sgh-t8[56]9|nexus 10))/i, /((SM-T\w+))/i], [[p, "Samsung"], l, [h, y]], [/smart-tv.+(samsung)/i], [p, [h, b], l], [/((s[cgp]h-\w+|gt-\w+|galaxy\snexus|sm-\w[\w\d]+))/i, /(sam[sung]*)[\s-]*(\w+-?[\w-]*)*/i, /sec-((sgh\w+))/i], [[p, "Samsung"], l, [h, g]], [/sie-(\w+)*/i], [l, [p, "Siemens"], [h, g]], [/(maemo|nokia).*(n900|lumia\s\d+)/i, /(nokia)[\s_-]?([\w-]+)*/i], [[p, "Nokia"], l, [h, g]], [/android\s3\.[\s\w;-]{10}(a\d{3})/i], [l, [p, "Acer"], [h, y]], [/android\s3\.[\s\w;-]{10}(lg?)-([06cv9]{3,4})/i], [[p, "LG"], l, [h, y]], [/(lg) netcast\.tv/i], [p, l, [h, b]], [/(nexus\s[45])/i, /lg[e;\s\/-]+(\w+)*/i], [l, [p, "LG"], [h, g]], [/android.+(ideatab[a-z0-9\-\s]+)/i], [l, [p, "Lenovo"], [h, y]], [/linux;.+((jolla));/i], [p, l, [h, g]], [/((pebble))app\/[\d\.]+\s/i], [p, l, [h, w]], [/android.+;\s(glass)\s\d/i], [l, [p, "Google"], [h, w]], [/android.+(\w+)\s+build\/hm\1/i, /android.+(hm[\s\-_]*note?[\s_]*(?:\d\w)?)\s+build/i, /android.+(mi[\s\-_]*(?:one|one[\s_]plus|note lte)?[\s_]*(?:\d\w)?)\s+build/i], [[l, /_/g, " "], [p, "Xiaomi"], [h, g]], [/android.+a000(1)\s+build/i], [l, [p, "OnePlus"], [h, g]], [/\s(tablet)[;\/]/i, /\s(mobile)(?:[;\/]|\ssafari)/i], [[h, S.lowerize], p, l]], engine: [[/windows.+\sedge\/([\w\.]+)/i], [d, [c, "EdgeHTML"]], [/(presto)\/([\w\.]+)/i, /(webkit|trident|netfront|netsurf|amaya|lynx|w3m)\/([\w\.]+)/i, /(khtml|tasman|links)[\/\s]\(?([\w\.]+)/i, /(icab)[\/\s]([23]\.[\d\.]+)/i], [c, d], [/rv\:([\w\.]+).*(gecko)/i], [d, c]], os: [[/microsoft\s(windows)\s(vista|xp)/i], [c, d], [/(windows)\snt\s6\.2;\s(arm)/i, /(windows\sphone(?:\sos)*)[\s\/]?([\d\.\s]+\w)*/i, /(windows\smobile|windows)[\s\/]?([ntce\d\.\s]+\w)/i], [c, [d, x.str, T.os.windows.version]], [/(win(?=3|9|n)|win\s9x\s)([nt\d\.]+)/i], [[c, "Windows"], [d, x.str, T.os.windows.version]], [/\((bb)(10);/i], [[c, "BlackBerry"], d], [/(blackberry)\w*\/?([\w\.]+)*/i, /(tizen)[\/\s]([\w\.]+)/i, /(android|webos|palm\sos|qnx|bada|rim\stablet\sos|meego|contiki)[\/\s-]?([\w\.]+)*/i, /linux;.+(sailfish);/i], [c, d], [/(symbian\s?os|symbos|s60(?=;))[\/\s-]?([\w\.]+)*/i], [[c, "Symbian"], d], [/\((series40);/i], [c], [/mozilla.+\(mobile;.+gecko.+firefox/i], [[c, "Firefox OS"], d], [/(nintendo|playstation)\s([wids34portablevu]+)/i, /(mint)[\/\s\(]?(\w+)*/i, /(mageia|vectorlinux)[;\s]/i, /(joli|[kxln]?ubuntu|debian|[open]*suse|gentoo|(?=\s)arch|slackware|fedora|mandriva|centos|pclinuxos|redhat|zenwalk|linpus)[\/\s-]?(?!chrom)([\w\.-]+)*/i, /(hurd|linux)\s?([\w\.]+)*/i, /(gnu)\s?([\w\.]+)*/i], [c, d], [/(cros)\s[\w]+\s([\w\.]+\w)/i], [[c, "Chromium OS"], d], [/(sunos)\s?([\w\.]+\d)*/i], [[c, "Solaris"], d], [/\s([frentopc-]{0,4}bsd|dragonfly)\s?([\w\.]+)*/i], [c, d], [/(haiku)\s(\w+)/i], [c, d], [/(ip[honead]+)(?:.*os\s([\w]+)*\slike\smac|;\sopera)/i], [[c, "iOS"], [d, /_/g, "."]], [/(mac\sos\sx)\s?([\w\s\.]+\w)*/i, /(macintosh|mac(?=_powerpc)\s)/i], [[c, "Mac OS"], [d, /_/g, "."]], [/((?:open)?solaris)[\/\s-]?([\w\.]+)*/i, /(aix)\s((\d)(?=\.|\)|\s)[\w\.]*)*/i, /(plan\s9|minix|beos|os\/2|amigaos|morphos|risc\sos|openvms)/i, /(unix)\s?([\w\.]+)*/i], [c, d]] }, C = function(t, n) { if (this instanceof C) { var i = t || (e && e.navigator && e.navigator.userAgent ? e.navigator.userAgent : r), s = n ? S.extend(N, n) : N; return this.getBrowser = function() { var e = x.rgx.apply(this, s.browser); return e.major = S.major(e.version), e }, this.getCPU = function() { return x.rgx.apply(this, s.cpu) }, this.getDevice = function() { return x.rgx.apply(this, s.device) }, this.getEngine = function() { return x.rgx.apply(this, s.engine) }, this.getOS = function() { return x.rgx.apply(this, s.os) }, this.getResult = function() { return { ua: this.getUA(), browser: this.getBrowser(), engine: this.getEngine(), os: this.getOS(), device: this.getDevice(), cpu: this.getCPU() } }, this.getUA = function() { return i }, this.setUA = function(e) { return i = e, this }, this } return (new C(t, n)).getResult() }; C.VERSION = n, C.BROWSER = { NAME: c, MAJOR: f, VERSION: d }, C.CPU = { ARCHITECTURE: v }, C.DEVICE = { MODEL: l, VENDOR: p, TYPE: h, CONSOLE: m, MOBILE: g, SMARTTV: b, TABLET: y, WEARABLE: w, EMBEDDED: E }, C.ENGINE = { NAME: c, VERSION: d }, C.OS = { NAME: c, VERSION: d }, typeof exports !== o ? (typeof module !== o && module.exports && (exports = module.exports = C), exports.UAParser = C) : typeof define === s && define.amd ? define(function() { return C }) : e.UAParser = C; var k = e.jQuery || e.Zepto; if (typeof k !== o) { var L = new C; k.ua = L.getResult(), k.ua.get = function() { return L.getUA() }, k.ua.set = function(e) { L.setUA(e); var t = L.getResult(); for (var n in t) k.ua[n] = t[n] } } })(typeof window == "object" ? window : this);
+UAParser._version = "0.7.12";
 
+/*!	SWFObject v2.2 <http://code.google.com/p/swfobject/>
+	se publica bajo licencia del MIT <http://www.opensource.org/licenses/mit-license.php>*/
+window.swfobject=function(){function e(){if(!G){try{var e=M.getElementsByTagName("body")[0].appendChild(h("span"));e.parentNode.removeChild(e)}catch(t){return}G=!0;for(var n=R.length,a=0;n>a;a++)R[a]()}}function t(e){G?e():R[R.length]=e}function n(e){if(typeof x.addEventListener!=L)x.addEventListener("load",e,!1);else if(typeof M.addEventListener!=L)M.addEventListener("load",e,!1);else if(typeof x.attachEvent!=L)m(x,"onload",e);else if("function"==typeof x.onload){var t=x.onload;x.onload=function(){t(),e()}}else x.onload=e}function a(){P?i():r()}function i(){var e=M.getElementsByTagName("body")[0],t=h(k);t.setAttribute("type",O);var n=e.appendChild(t);if(n){var a=0;!function(){if(typeof n.GetVariable!=L){var i=n.GetVariable("$version");i&&(i=i.split(" ")[1].split(","),X.pv=[parseInt(i[0],10),parseInt(i[1],10),parseInt(i[2],10)])}else if(10>a)return a++,void setTimeout(arguments.callee,10);e.removeChild(t),n=null,r()}()}else r()}function r(){var e=D.length;if(e>0)for(var t=0;e>t;t++){var n=D[t].id,a=D[t].callbackFn,i={success:!1,id:n};if(X.pv[0]>0){var r=y(n);if(r)if(!g(D[t].swfVersion)||X.wk&&X.wk<312)if(D[t].expressInstall&&s()){var f={};f.data=D[t].expressInstall,f.width=r.getAttribute("width")||"0",f.height=r.getAttribute("height")||"0",r.getAttribute("class")&&(f.styleclass=r.getAttribute("class")),r.getAttribute("align")&&(f.align=r.getAttribute("align"));for(var d={},u=r.getElementsByTagName("param"),p=u.length,v=0;p>v;v++)"movie"!=u[v].getAttribute("name").toLowerCase()&&(d[u[v].getAttribute("name")]=u[v].getAttribute("value"));l(f,d,n,a)}else c(r),a&&a(i);else b(n,!0),a&&(i.success=!0,i.ref=o(n),a(i))}else if(b(n,!0),a){var h=o(n);h&&typeof h.SetVariable!=L&&(i.success=!0,i.ref=h),a(i)}}}function o(e){var t=null,n=y(e);if(n&&"OBJECT"==n.nodeName)if(typeof n.SetVariable!=L)t=n;else{var a=n.getElementsByTagName(k)[0];a&&(t=a)}return t}function s(){return!J&&g("6.0.65")&&(X.win||X.mac)&&!(X.wk&&X.wk<312)}function l(e,t,n,a){J=!0,A=a||null,N={success:!1,id:n};var i=y(n);if(i){"OBJECT"==i.nodeName?(E=f(i),S=null):(E=i,S=n),e.id=F,(typeof e.width==L||!/%$/.test(e.width)&&parseInt(e.width,10)<310)&&(e.width="310"),(typeof e.height==L||!/%$/.test(e.height)&&parseInt(e.height,10)<137)&&(e.height="137"),M.title=M.title.slice(0,47)+" - Flash Player Installation";var r=X.ie&&X.win?"ActiveX":"PlugIn",o="MMredirectURL="+x.location.toString().replace(/&/g,"%26")+"&MMplayerType="+r+"&MMdoctitle="+M.title;if(typeof t.flashvars!=L?t.flashvars+="&"+o:t.flashvars=o,X.ie&&X.win&&4!=i.readyState){var s=h("div");n+="SWFObjectNew",s.setAttribute("id",n),i.parentNode.insertBefore(s,i),i.style.display="none",function(){4==i.readyState?i.parentNode.removeChild(i):setTimeout(arguments.callee,10)}()}d(e,t,n)}}function c(e){if(X.ie&&X.win&&4!=e.readyState){var t=h("div");e.parentNode.insertBefore(t,e),t.parentNode.replaceChild(f(e),t),e.style.display="none",function(){4==e.readyState?e.parentNode.removeChild(e):setTimeout(arguments.callee,10)}()}else e.parentNode.replaceChild(f(e),e)}function f(e){var t=h("div");if(X.win&&X.ie)t.innerHTML=e.innerHTML;else{var n=e.getElementsByTagName(k)[0];if(n){var a=n.childNodes;if(a)for(var i=a.length,r=0;i>r;r++)1==a[r].nodeType&&"PARAM"==a[r].nodeName||8==a[r].nodeType||t.appendChild(a[r].cloneNode(!0))}}return t}function d(e,t,n){var a,i=y(n);if(X.wk&&X.wk<312)return a;if(i)if(typeof e.id==L&&(e.id=n),X.ie&&X.win){var r="";for(var o in e)e[o]!=Object.prototype[o]&&("data"==o.toLowerCase()?t.movie=e[o]:"styleclass"==o.toLowerCase()?r+=' class="'+e[o]+'"':"classid"!=o.toLowerCase()&&(r+=" "+o+'="'+e[o]+'"'));var s="";for(var l in t)t[l]!=Object.prototype[l]&&(s+='<param name="'+l+'" value="'+t[l]+'" />');i.outerHTML='<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"'+r+">"+s+"</object>",W[W.length]=e.id,a=y(e.id)}else{var c=h(k);c.setAttribute("type",O);for(var f in e)e[f]!=Object.prototype[f]&&("styleclass"==f.toLowerCase()?c.setAttribute("class",e[f]):"classid"!=f.toLowerCase()&&c.setAttribute(f,e[f]));for(var d in t)t[d]!=Object.prototype[d]&&"movie"!=d.toLowerCase()&&u(c,d,t[d]);i.parentNode.replaceChild(c,i),a=c}return a}function u(e,t,n){var a=h("param");a.setAttribute("name",t),a.setAttribute("value",n),e.appendChild(a)}function p(e){var t=y(e);t&&"OBJECT"==t.nodeName&&(X.ie&&X.win?(t.style.display="none",function(){4==t.readyState?v(e):setTimeout(arguments.callee,10)}()):t.parentNode.removeChild(t))}function v(e){var t=y(e);if(t){for(var n in t)"function"==typeof t[n]&&(t[n]=null);t.parentNode.removeChild(t)}}function y(e){var t=null;try{t=M.getElementById(e)}catch(n){}return t}function h(e){return M.createElement(e)}function m(e,t,n){e.attachEvent(t,n),H[H.length]=[e,t,n]}function g(e){var t=X.pv,n=e.split(".");return n[0]=parseInt(n[0],10),n[1]=parseInt(n[1],10)||0,n[2]=parseInt(n[2],10)||0,t[0]>n[0]||t[0]==n[0]&&t[1]>n[1]||t[0]==n[0]&&t[1]==n[1]&&t[2]>=n[2]?!0:!1}function w(e,t,n,a){if(!X.ie||!X.mac){var i=M.getElementsByTagName("head")[0];if(i){var r=n&&"string"==typeof n?n:"screen";if(a&&(T=null,I=null),!T||I!=r){var o=h("style");o.setAttribute("type","text/css"),o.setAttribute("media",r),T=i.appendChild(o),X.ie&&X.win&&typeof M.styleSheets!=L&&M.styleSheets.length>0&&(T=M.styleSheets[M.styleSheets.length-1]),I=r}X.ie&&X.win?T&&typeof T.addRule==k&&T.addRule(e,t):T&&typeof M.createTextNode!=L&&T.appendChild(M.createTextNode(e+" {"+t+"}"))}}}function b(e,t){if(U){var n=t?"visible":"hidden";G&&y(e)?y(e).style.visibility=n:w("#"+e,"visibility:"+n)}}function C(e){var t=/[\\\"<>\.;]/,n=null!=t.exec(e);return n&&typeof encodeURIComponent!=L?encodeURIComponent(e):e}var E,S,A,N,T,I,L="undefined",k="object",j="Shockwave Flash",B="ShockwaveFlash.ShockwaveFlash",O="application/x-shockwave-flash",F="SWFObjectExprInst",$="onreadystatechange",x=window,M=document,V=navigator,P=!1,R=[a],D=[],W=[],H=[],G=!1,J=!1,U=!0,X=function(){var e=typeof M.getElementById!=L&&typeof M.getElementsByTagName!=L&&typeof M.createElement!=L,t=V.userAgent.toLowerCase(),n=V.platform.toLowerCase(),a=n?/win/.test(n):/win/.test(t),i=n?/mac/.test(n):/mac/.test(t),r=/webkit/.test(t)?parseFloat(t.replace(/^.*webkit\/(\d+(\.\d+)?).*$/,"$1")):!1,o=!1,s=[0,0,0],l=null;if(typeof V.plugins!=L&&typeof V.plugins[j]==k)l=V.plugins[j].description,!l||typeof V.mimeTypes!=L&&V.mimeTypes[O]&&!V.mimeTypes[O].enabledPlugin||(P=!0,o=!1,l=l.replace(/^.*\s+(\S+\s+\S+$)/,"$1"),s[0]=parseInt(l.replace(/^(.*)\..*$/,"$1"),10),s[1]=parseInt(l.replace(/^.*\.(.*)\s.*$/,"$1"),10),s[2]=/[a-zA-Z]/.test(l)?parseInt(l.replace(/^.*[a-zA-Z]+(.*)$/,"$1"),10):0);else if(typeof x.ActiveXObject!=L)try{var c=new ActiveXObject(B);c&&(l=c.GetVariable("$version"),l&&(o=!0,l=l.split(" ")[1].split(","),s=[parseInt(l[0],10),parseInt(l[1],10),parseInt(l[2],10)]))}catch(f){}return{w3:e,pv:s,wk:r,ie:o,win:a,mac:i}}();(function(){X.w3&&((typeof M.readyState!=L&&"complete"==M.readyState||typeof M.readyState==L&&(M.getElementsByTagName("body")[0]||M.body))&&e(),G||(typeof M.addEventListener!=L&&M.addEventListener("DOMContentLoaded",e,!1),X.ie&&X.win&&(M.attachEvent($,function(){"complete"==M.readyState&&(M.detachEvent($,arguments.callee),e())}),x==top&&!function(){if(!G){try{M.documentElement.doScroll("left")}catch(t){return void setTimeout(arguments.callee,0)}e()}}()),X.wk&&!function(){return G?void 0:/loaded|complete/.test(M.readyState)?void e():void setTimeout(arguments.callee,0)}(),n(e)))})(),function(){X.ie&&X.win&&window.attachEvent("onunload",function(){for(var e=H.length,t=0;e>t;t++)H[t][0].detachEvent(H[t][1],H[t][2]);for(var n=W.length,a=0;n>a;a++)p(W[a]);for(var i in X)X[i]=null;X=null;for(var r in swfobject)swfobject[r]=null;swfobject=null})}();return{registerObject:function(e,t,n,a){if(X.w3&&e&&t){var i={};i.id=e,i.swfVersion=t,i.expressInstall=n,i.callbackFn=a,D[D.length]=i,b(e,!1)}else a&&a({success:!1,id:e})},getObjectById:function(e){return X.w3?o(e):void 0},embedSWF:function(e,n,a,i,r,o,c,f,u,p){var v={success:!1,id:n};X.w3&&!(X.wk&&X.wk<312)&&e&&n&&a&&i&&r?(b(n,!1),t(function(){a+="",i+="";var t={};if(u&&typeof u===k)for(var y in u)t[y]=u[y];t.data=e,t.width=a,t.height=i;var h={};if(f&&typeof f===k)for(var m in f)h[m]=f[m];if(c&&typeof c===k)for(var w in c)typeof h.flashvars!=L?h.flashvars+="&"+w+"="+c[w]:h.flashvars=w+"="+c[w];if(g(r)){var C=d(t,h,n);t.id==n&&b(n,!0),v.success=!0,v.ref=C}else{if(o&&s())return t.data=o,void l(t,h,n,p);b(n,!0)}p&&p(v)})):p&&p(v)},switchOffAutoHideShow:function(){U=!1},ua:X,getFlashPlayerVersion:function(){return{major:X.pv[0],minor:X.pv[1],release:X.pv[2]}},hasFlashPlayerVersion:g,createSWF:function(e,t,n){return X.w3?d(e,t,n):void 0},showExpressInstall:function(e,t,n,a){X.w3&&s()&&l(e,t,n,a)},removeSWF:function(e){X.w3&&p(e)},createCSS:function(e,t,n,a){X.w3&&w(e,t,n,a)},addDomLoadEvent:t,addLoadEvent:n,getQueryParamValue:function(e){var t=M.location.search||M.location.hash;if(t){if(/\?/.test(t)&&(t=t.split("?")[1]),null==e)return C(t);for(var n=t.split("&"),a=0;a<n.length;a++)if(n[a].substring(0,n[a].indexOf("="))==e)return C(n[a].substring(n[a].indexOf("=")+1))}return""},expressInstallCallback:function(){if(J){var e=y(F);e&&E&&(e.parentNode.replaceChild(E,e),S&&(b(S,!0),X.ie&&X.win&&(E.style.display="block")),A&&A(N)),J=!1}}}}();
+swfobject._version = "2.2";
 
 if (!String.prototype.format) {
     //http://stackoverflow.com/questions/18405736/is-there-a-c-sharp-string-format-equivalent-in-javascript
@@ -109,7 +125,10 @@ if (!scormPlayerConfig) {
         testFlash: false,
         APIname: "API",
         showCompleteBtn: false,
-        scale: false
+        scale: false,
+        allowFailed: true,
+        autoMinMax: [0, 100],
+        parameter_2_string: true
     }
 }
 if (scormPlayerConfig.cache === undefined) { scormPlayerConfig.cache = true; }
@@ -119,6 +138,9 @@ if (scormPlayerConfig.testFlash === undefined) { scormPlayerConfig.testFlash = f
 if (scormPlayerConfig.APIname === undefined) { scormPlayerConfig.APIname = "API"; }
 if (scormPlayerConfig.showCompleteBtn === undefined) { scormPlayerConfig.showCompleteBtn = false; }
 if (scormPlayerConfig.scale === undefined) { scormPlayerConfig.scale = false; }
+if (scormPlayerConfig.allowFailed === undefined) { scormPlayerConfig.allowFailed = true; }
+if (scormPlayerConfig.autoMinMax === undefined) { scormPlayerConfig.autoMinMax = [0, 100]; }
+if (scormPlayerConfig.parameter_2_string === undefined) { scormPlayerConfig.parameter_2_string = true; }
 
 if (scormPlayerConfig.testFlash && document.referrer.indexOf("testflash.html") === -1) {
     location.replace(location.href.replace(scormPlayerConfig.testFlash, "scripts/scormplayer/testflash.html"));
@@ -135,9 +157,9 @@ function scormPlayer() {
         var log = [], log_item, _window = window, commit_timeout, commit_max_timeout, changes, player_timeout, last_commit, SCO_in_use,
             cache = {}, suspend_data, entry, isParent, states = { NotInitialized: 0, Running: 1, Terminated: 2 },
             state = states.NotInitialized, parser, exitFullscreen, requestFullscreen, moment = window.moment, Modernizr = window.Modernizr,
-            UAParser = window.UAParser, API, API_1184_11, apisource = "window";
-        delete window.moment; delete window.UAParser;
-        scormPlayer.moment = moment;
+            UAParser = window.UAParser, API, API_1184_11, apisource = "window", swfobject = window.swfobject, console, 
+            localStorage = window.localStorage, sss = [], minTimeOut, maxTimeOut, lastError, diagnostic, errorCache = {};
+            scormPlayer.moment = moment;
         moment.duration.fn.format = function(input) {
             var output = input, milliseconds = this.asMilliseconds(), totalMilliseconds = 0;
             var replaceRegexps = {
@@ -165,8 +187,23 @@ function scormPlayer() {
             }
             return output;
         };
-        var console = { log: function(item) { if (window.console) { window.console.log(item); } log.push(item); } }
-        var localStorage = window.localStorage;
+        scormPlayer.start = moment();
+        console = { log: function(item) { if (window.console) { window.console.log(item); } log.push(item); } }
+        console.log(comment("Start"));
+        delete window.moment; delete window.UAParser; 
+        //delete window.swfobject; eliminar no esta permitido en strict
+        parser = ev("new UAParser().getResult();");
+        console.log("window.location.href;{0}".format(comment(param(window.location.href))));
+        ev("document.referrer;");
+        console.log("navigator.language || navigator.userLanguage;{0}".format(comment(param(navigator.language || navigator.userLanguage))));
+        console.log("screen.height;{0}".format(comment(param(screen.height))));
+        console.log("screen.width;{0}".format(comment(param(screen.width))));
+        console.log("window.innerHeight;{0}".format(comment(param(window.innerHeight))));
+        console.log("window.innerWidth;{0}".format(comment(param(window.innerWidth))));
+        parser = parser.browser.name + ' ' + parser.browser.major + ' on ' +
+            (parser.device.vendor ? "a " + parser.device.vendor + " " + parser.device.model + " runing " : "") +
+            parser.os.name + ' ' + parser.os.version;
+        console.log(comment("Parse userAgent: {0}".format(parser)));
         if (localStorage) { try { localStorage.setItem("log_location", localStorage.getItem("log_location")); } catch (e) { setlocals(); } }
         else { setlocals(); }
         var EventCache = function() {
@@ -185,7 +222,15 @@ function scormPlayer() {
                 }
             };
         }();
-
+        ev("scormPlayerConfig;");
+        ev("moment.version;");
+        ev("Modernizr._version;");
+        ev("UAParser._version;");
+        ev("swfobject._version;");
+        ev("Modernizr.fullscreen;");
+        ev("Modernizr.flash;");
+        ev("Modernizr.localstorage;");
+        ev("swfobject.getFlashPlayerVersion();");
         if (Modernizr.fullscreen) {
             addEventListener(
                 window,
@@ -202,21 +247,7 @@ function scormPlayer() {
                     else { requestFullscreen(Element.ALLOW_KEYBOARD_INPUT); console.log(comment("dblclick requestFullscreen")); }
                 }
             );
-            }
-        scormPlayer.start = moment();
-        console.log(comment("Start"));
-        console.log("window.location.href;{0}".format(comment(param(window.location.href))));
-        console.log("navigator.userAgent;{0}".format(comment(param(navigator.userAgent))));
-        console.log("navigator.language || navigator.userLanguage;{0}".format(comment(param(navigator.language || navigator.userLanguage))));
-        console.log("screen.height;{0}".format(comment(param(screen.height))));
-        console.log("screen.width;{0}".format(comment(param(screen.width))));
-        console.log("window.innerHeight;{0}".format(comment(param(window.innerHeight))));
-        console.log("window.innerWidth;{0}".format(comment(param(window.innerWidth))));
-        parser = new UAParser().getResult();
-        parser = parser.browser.name + ' ' + parser.browser.major + ' on ' +
-            (parser.device.vendor ? "a " + parser.device.vendor + " " + parser.device.model + " runing " : "") +
-            parser.os.name + ' ' + parser.os.version;
-        console.log(comment("Parse userAgent: {0}".format(parser)));
+        }
 
         console.log(comment("Find API"));
         for (var attempt = 0, step = 0; !_window[scormPlayerConfig.APIname] && attempt < 7 && step < 3; attempt++) {
@@ -242,65 +273,63 @@ function scormPlayer() {
                 step++;
             }
         }
-        ev("{0}.location.href".format(apisource));
-        ev("{0}.document.referrer".format(apisource));
-        var client = ev("localStorage.getItem({0})".format(param("client")));
+        ev("{0}.location.href;".format(apisource));
+        ev("{0}.document.referrer;".format(apisource));
+        var client = ev("localStorage.getItem({0});".format(param("client")));
         if (client === null || client === "" || client === undefined) {
             client = [newguid(), moment().format("YYYY-MM-DDThh:mm:ss.SSSZ")];
-            ev("localStorage.setItem({0})".format(param(JSON.stringify(client))));
+            ev("localStorage.setItem({0},{1});".format("client", param(JSON.stringify(client))));
         } else { client = JSON.parse(client); }
-        
-        var noerror = false;
         if (scormPlayerConfig.APIname === "API_1184_11") {
             API_1184_11 = _window.API_1184_11;
             _window.API_1184_11 = window.API_1184_11 = {
                 Initialize: function(parameter) {
                     try {
-                        var return_value = ev("API_1184_11.Initialize({0})".format(param(parameter)));
+                        var return_value = ev("API_1184_11.Initialize({0});".format(param(parameter)));
                         if ((noerror = return_value === "true")) {
                             last_commit = moment();
-                            window.API_1184_11.GetValue("cmi.suspend_data");
-                            if (SCO_in_use && SCO_in_use.add(5, "minutes") > moment()) {
+                            _window.API_1184_11.GetValue("cmi.suspend_data");
+                            if (sss[0] && sss[1].add(5, "minutes") > moment()) {
                                 console.log(comment("SCO already launched"));
                                 alert(
                                     "Ya se esta mostrando un curso en otra ventana, favor de cerrarla y volver a ingresar\nO espera {0} minutos".format(
-                                        moment.duration(SCO_in_use - moment()).format("mm:ss")
+                                        moment.duration(sss[1] - moment()).format("mm:ss")
                                     )
                                 );
                                 return_value = "false";
-                                window.API_1184_11.Terminate("");
+                                _window.API_1184_11.Terminate("");
                             } else {
                                 state = states.Running;
                                 saveInit(true);
-                                window.API_1184_11.GetValue("cmi._version");
-                                window.API_1184_11.GetValue("cmi.completion_status");
-                                window.API_1184_11.GetValue("cmi.completion_threshold");
-                                window.API_1184_11.GetValue("cmi.credit");
-                                entry = window.API_1184_11.GetValue("cmi.entry");
-                                window.API_1184_11.GetValue("cmi.learner_id");
-                                window.API_1184_11.GetValue("cmi.learner_name");
-                                window.API_1184_11.GetValue("cmi.location");
-                                window.API_1184_11.GetValue("cmi.mode");
-                                window.API_1184_11.GetValue("cmi.progress_measure");
-                                window.API_1184_11.GetValue("cmi.scaled_passing_score");
-                                window.API_1184_11.GetValue("cmi.score.scaled");
-                                window.API_1184_11.GetValue("cmi.score.raw");
-                                window.API_1184_11.GetValue("cmi.score.min");
-                                window.API_1184_11.GetValue("cmi.score.max");
-                                window.API_1184_11.GetValue("cmi.success_status");
-                                window.API_1184_11.GetValue("cmi.total_time");
-                                setInterval(function() { saveInit(true); window.API_1184_11.Commit(""); }, 225000);
+                                _window.API_1184_11.GetValue("cmi._version");
+                                _window.API_1184_11.GetValue("cmi.completion_status");
+                                _window.API_1184_11.GetValue("cmi.completion_threshold");
+                                _window.API_1184_11.GetValue("cmi.credit");
+                                entry = _window.API_1184_11.GetValue("cmi.entry");
+                                _window.API_1184_11.GetValue("cmi.learner_id");
+                                _window.API_1184_11.GetValue("cmi.learner_name");
+                                _window.API_1184_11.GetValue("cmi.location");
+                                _window.API_1184_11.GetValue("cmi.mode");
+                                _window.API_1184_11.GetValue("cmi.progress_measure");
+                                _window.API_1184_11.GetValue("cmi.scaled_passing_score");
+                                _window.API_1184_11.GetValue("cmi.score.scaled");
+                                _window.API_1184_11.GetValue("cmi.score.raw");
+                                _window.API_1184_11.GetValue("cmi.score.min");
+                                _window.API_1184_11.GetValue("cmi.score.max");
+                                _window.API_1184_11.GetValue("cmi.success_status");
+                                _window.API_1184_11.GetValue("cmi.total_time");
+                                setInterval(function() { saveInit(true); _window.API_1184_11.Commit(""); }, 225000);
                                 if (entry === "ab-initio") {
-                                    window.API_1184_11.SetValue("cmi.exit", "suspend");
-                                    window.API_1184_11.SetValue("cmi.completion_status", "incomplete");
-                                } else if (entry === "resume") { window.API_1184_11.SetValue("cmi.exit", "suspend"); }
-                                window.API_1184_11.Commit("");
+                                    _window.API_1184_11.SetValue("cmi.exit", "suspend");
+                                    _window.API_1184_11.SetValue("cmi.completion_status", "incomplete");
+                                } else if (entry === "resume") { _window.API_1184_11.SetValue("cmi.exit", "suspend"); }
+                                _window.API_1184_11.Commit("");
                             }
                             cmi.savelog();
                         } else {
                             testError();
                             alert("¡Ocurrio un error al inicializar la comunicación con la plataforma!");
-                            window.API_1184_11.Terminate("");
+                            _window.API_1184_11.Terminate("");
                         }
                     } catch (error) {
                         return_value = "false";
@@ -313,11 +342,11 @@ function scormPlayer() {
                     try {
                         if (state === states.Running) {
                             console.log(comment("Auto set cmi.core.exit state"));
-                            if (window.API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { winodw.API.LMSSetValue("cmi.core.exit", "suspend"); }
-                            else { window.API.LMSSetValue("cmi.core.exit", ""); }
+                            if (_window.API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { winodw.API.LMSSetValue("cmi.core.exit", "suspend"); }
+                            else { _window.API.LMSSetValue("cmi.core.exit", ""); }
                             saveInit(false);
                         }
-                        var return_value = ev("API_1184_11.Terminate({0})".format(param(parameter)));
+                        var return_value = ev("API_1184_11.Terminate({0});".format(param(parameter)));
                         if ((noerror = return_value === "true")) {
                             state = states.Terminated;
                             commit_timeout = clearTimeout(commit_timeout); commit_timeout = undefined;
@@ -344,20 +373,17 @@ function scormPlayer() {
                             console.log("\t\\\\API_1184_11.GetValue({0});{1}".format(param(parameter), comment(param(return_value), moment())));
                             return return_value;
                         }
-                        return_value = ev("API_1184_11.GetValue({0})".format(param(parameter)));
+                        return_value = ev("API_1184_11.GetValue({0});".format(param(parameter)));
                         noerror = false;
                         if ((noerror = !(return_value === "" && testError()))) {
                             if (parameter === "cmi.suspend_data") {
                                 if (return_value !== "") {
                                     try {
-                                        return_value = JSON.parse(return_value);
-                                        if (return_value.length === 3) {
-                                            if (return_value[0] !== null) { SCO_in_use = moment(return_value[0]); }
-                                            return_value = return_value[2];
-                                        } else if (return_value.length === 2) {
-                                            SCO_in_use = moment(return_value[0]);
-                                            return_value = return_value[1];
-                                        }
+                                        sss = JSON.parse(return_value);
+                                        if (sss.length === 5) { sss[1] = moment(sss[1]); }
+                                        if (sss.length === 3) { sss = [0,null,null,null,sss[2]]; }
+                                        else if (sss.length === 2) { sss = [0,null,null,null,sss[1]]; }
+                                        return_value = sss[4];
                                     } catch (e) { }
                                 }
                                 suspend_data = return_value;
@@ -383,7 +409,7 @@ function scormPlayer() {
                             && !parameter_1.startsWith("cmi.interactions.")
                         ) {
                             console.log(comment("Check current value before set"));
-                            window.API.LMSGetValue(parameter_1);
+                            _window.API.LMSGetValue(parameter_1);
                         }
                         if (entry === "" && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "incomplete") {
                             console.log(comment("Block change lesson_status"));
@@ -396,19 +422,20 @@ function scormPlayer() {
                             console.log("\t\\\\API_1184_11.SetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
                             return "true";
                         }
-                        tmp_value = parameter_1 === "cmi.suspend_data" ? JSON.stringify([SCO_in_use, parser, parameter_2]) : parameter_2;
-                        return_value = ev("API_1184_11.SetValue({0}, {1})".format(param(parameter_1), param(tmp_value)));
+                        if(parameter_1 === "cmi.suspend_data"){ sss[4] = parameter_2; }
+                        tmp_value = parameter_1 === "cmi.suspend_data" ? JSON.stringify(sss) : parameter_2;
+                        return_value = ev("API_1184_11.SetValue({0}, {1});".format(param(parameter_1), param(tmp_value)));
                         if ((noerror = return_value === "true")) {
                             changes = true;
                             if (scormPlayerConfig.autoCommitTime) {
                                 clearTimeout(commit_timeout);
                                 commit_timeout = setTimeout(
-                                    function() { console.log(comment("Auto commit")); window.API.LMSCommit(""); },
+                                    function() { console.log(comment("Auto commit")); _window.API.LMSCommit(""); },
                                     scormPlayerConfig.autoCommitTime
                                 );
                                 if (!commit_max_timeout) {
                                     commit_max_timeout = setTimeout(
-                                        function() { console.log(comment("Timeout 60secs without commit")); window.API.LMSCommit(""); },
+                                        function() { console.log(comment("Timeout 60secs without commit")); _window.API.LMSCommit(""); },
                                         scormPlayerConfig.autoCommitTime * 2
                                     );
                                 }
@@ -433,7 +460,7 @@ function scormPlayer() {
                             console.log("\t\\\\API_1184_11.Commit({0});{1}".format(param(parameter), comment(param(return_value), moment())));
                             return return_value;
                         }
-                        return_value = ev("API_1184_11.Commit({0})".format(param(parameter)));
+                        return_value = ev("API_1184_11.Commit({0});".format(param(parameter)));
                         if ((noerror = return_value === "true")) {
                             last_commit = moment();
                             changes = false;
@@ -459,21 +486,21 @@ function scormPlayer() {
                             console.log("\t\\\\API.LMSGetLastError();{0}".format(comment(param(return_value), moment())));
                             return return_value;
                         }
-                        return ev("API_1184_11.GetLastError()");
+                        return ev("API_1184_11.GetLastError();");
                     } catch (error) {
                         console.log(comment("Error in API_1184_11.GetLastError: {0}".format(error.message)));
                         return "";
                     }
                 },
                 GetErrorString: function(parameter) {
-                    try { return ev("API_1184_11.GetErrorString({0})".format(param(parameter))); }
+                    try { return ev("API_1184_11.GetErrorString({0});".format(param(parameter))); }
                     catch (error) {
                         console.log(comment("Error in API_1184_11.GetErrorString: {0}".format(error.message)));
                         return "";
                     }
                 },
                 GetDiagnostic: function(parameter) {
-                    try { return ev("API_1184_11.GetDiagnostic({0})".format(param(parameter))); }
+                    try { return ev("API_1184_11.GetDiagnostic({0});".format(param(parameter))); }
                     catch (error) {
                         console.log(comment("Error in API_1184_11.GetDiagnostic: {0}".format(error.message)));
                         return "";
@@ -509,121 +536,148 @@ function scormPlayer() {
                     LMSGetDiagnostic: function() { return ""; },
                     version: "0.0.20170526"
                 };
-            } else { API = _window.API;}
-            ev("API.version");
+            } else { API = _window._API = _window.API;}
+            ev("API.version;");
             _window.API = window.API = {
                 LMSInitialize: function(parameter) {
                     try {
-                        var return_value = ev("API.LMSInitialize({0})".format(param(parameter)));
-                        if ((noerror = return_value === "true")) {
+                        var return_value, command;
+                        command = "API.LMSInitialize({0});".format(param(parameter));
+                        if(state === states.Running){  console.log(comment("state: Running")); return "false"; }
+                        if(state === states.Terminated){ console.log(comment("state: Terminated")); return "false"; }
+                        try{ lastError = undefined; diagnostic = undefined; return_value = ev(command); }
+                        catch(e){
+                            return_value = "false"; lastError = "101"; diagnostic = e.message;
+                            console.log("{0}{1}".format(command, comment(param(return_value), moment())));
+                        }
+                        if (return_value === "true") {
                             last_commit = moment();
-                            window.API.LMSGetValue("cmi.suspend_data");
-                            if (SCO_in_use && SCO_in_use.add(5, "minutes") > moment()) {
+                            _window.API.LMSGetValue("cmi.suspend_data");
+                            if (sss[0] && sss[1].add(5, "minutes") > moment()) {
                                 console.log(comment("SCO already launched"));
                                 alert(
                                     "Ya se esta mostrando un curso en otra ventana, favor de cerrarla y volver a ingresar\nO espera {0} minutos".format(
-                                        moment.duration(SCO_in_use - moment()).format("mm:ss")
+                                        moment.duration(sss[1] - moment()).format("mm:ss")
                                     )
                                 );
                                 return_value = "false";
-                                window.API.LMSFinish("");
+                                _window.API.LMSFinish("");
                             } else {
+                                lastError = "0"; diagnostic = "";
                                 state = states.Running;
+                                sss[3] = parser;
                                 saveInit(true);
-                                window.API.LMSGetValue("cmi.core.student_id");
-                                window.API.LMSGetValue("cmi.core.student_name");
-                                window.API.LMSGetValue("cmi.core.lesson_mode");
-                                entry = window.API.LMSGetValue("cmi.core.entry");
-                                window.API.LMSGetValue("cmi.core.credit");
-                                window.API.LMSGetValue("cmi.core.lesson_status");
-                                window.API.LMSGetValue("cmi.core.lesson_location");
-                                window.API.LMSGetValue("cmi.core.total_time");
-                                setInterval(function() { saveInit(true); window.API.LMSCommit(""); }, 225000);
+                                _window.API.LMSGetValue("cmi.core.student_id");
+                                _window.API.LMSGetValue("cmi.core.student_name");
+                                _window.API.LMSGetValue("cmi.core.lesson_mode");
+                                entry = _window.API.LMSGetValue("cmi.core.entry");
+                                _window.API.LMSGetValue("cmi.core.credit");
+                                _window.API.LMSGetValue("cmi.core.lesson_status");
+                                _window.API.LMSGetValue("cmi.core.lesson_location");
+                                _window.API.LMSGetValue("cmi.core.total_time");
+                                setInterval(function() { saveInit(true); _window.API.LMSCommit(""); }, 225000);
                                 if (entry === "ab-initio") {
-                                    window.API.LMSSetValue("cmi.core.exit", "suspend");
-                                    window.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
-                                } else if (entry === "resume") { window.API.LMSSetValue("cmi.core.exit", "suspend"); }
-                                window.API.LMSCommit("");
+                                    _window.API.LMSSetValue("cmi.core.exit", "suspend");
+                                    _window.API.LMSSetValue("cmi.core.lesson_status", "incomplete");
+                                } else if (entry === "resume") { _window.API.LMSSetValue("cmi.core.exit", "suspend"); }
+                                _window.API.LMSCommit("");
                             }
                             cmi.savelog();
                         } else {
-                            testError();
-                            alert("¡Ocurrio un error al inicializar la comunicación con la plataforma!");
-                            window.API.LMSFinish("");
+                            testError(command);
+                            _window.API.LMSFinish("");
                         }
-                    } catch (error) {
-                        return_value = "false";
-                        console.log(comment("Error in API.LMSInitialize: {0}".format(error.message)));
-                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSInitialize: {0}".format(error.message));
+                    } catch (e) {
+                        return_value = "false"; lastError = "101"; diagnostic = e.message;
+                        console.log("{0}{1}".format(command, comment(param(return_value), moment())));
+                        testError(command);
                     }
                     return return_value;
                 },
                 LMSFinish: function(parameter) {
                     try {
+                        var return_value, command;
+                        command = "API.LMSFinish({0});".format(param(parameter));
                         if (state === states.Running) {
+                            if(minTimeOut){ minFunction(); }
+                            if(maxTimeOut){ maxFunction(); }
                             console.log(comment("Auto set cmi.core.exit state"));
-                            if (window.API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { window.API.LMSSetValue("cmi.core.exit", "suspend"); }
-                            else { window.API.LMSSetValue("cmi.core.exit", ""); }
+                            if (_window.API.LMSGetValue("cmi.core.lesson_status") === "incomplete") { _window.API.LMSSetValue("cmi.core.exit", "suspend"); }
+                            else { _window.API.LMSSetValue("cmi.core.exit", ""); }
                             saveInit(false);
                         }
-                        var return_value = ev("API.LMSFinish({0})".format(param(parameter)));
-                        if ((noerror = return_value === "true")) {
+                        try{ lastError = undefined; diagnostic = undefined; return_value = ev(command); }
+                        catch(e){
+                            return_value = "false"; lastError = "101"; diagnostic = e.message;
+                            console.log("{0}{1}".format(command, comment(param(return_value), moment())));
+                        }
+                        if (return_value === "true") {
+                            lastError = "0"; diagnostic = "";
                             state = states.Terminated;
                             commit_timeout = clearTimeout(commit_timeout); commit_timeout = undefined;
                             commit_max_timeout = clearTimeout(commit_max_timeout); commit_max_timeout = undefined;
                             setTimeout(function() { document.close(); }, 0);
                             sleep(1000);
-                        } else {
-                            testError();
-                            alert("¡Ocurrio un error al finalizar la comunicación con la plataforma!");
-                        }
+                        } else { testError(command); }
                         cmi.savelog();
-                    } catch (error) {
-                        return_value = "false";
-                        console.log(comment("Error in API.LMSFinish: {0}".format(error.message)));
-                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSFinish: {0}".format(error.message));
+                    } catch (e) {
+                        return_value = "false"; lastError = "101"; diagnostic = e.message;
+                        console.log("{0}{1}".format(command, comment(param(return_value), moment())));
+                        testError(command);
                     }
                     return return_value;
                 },
                 LMSGetValue: function(parameter) {
                     try {
-                        var return_value = cache[parameter];
+                        var return_value = cache[parameter], command;
+                        command = "API.LMSGetValue({0});".format(param(parameter));
                         if (state === states.Running && return_value !== undefined) {
+                            lastError = "0"; diagnostic = "";
                             console.log(comment("Return value from cache"));
-                            console.log("\t\\\\API.LMSGetValue({0});{1}".format(param(parameter), comment(param(return_value), moment())));
+                            console.log("\t\\\\{0}{1}".format(command, comment(param(return_value), moment())));
                             return return_value;
                         }
-                        return_value = ev("API.LMSGetValue({0})".format(param(parameter)));
-                        noerror = false;
-                        if ((noerror = !(return_value === "" && testError()))) {
+                        try{ lastError = undefined; diagnostic = undefined; return_value = ev(command); }
+                        catch(e){
+                            return_value = ""; lastError = "101"; diagnostic = e.message;
+                            console.log("{0}{1}".format(command, comment(param(return_value))));
+                        }
+                        if (typeof return_value === "string" && !(return_value === "" && testError(command))) {
+                            lastError = "0"; diagnostic = "";
                             if (parameter === "cmi.suspend_data") {
-                                if (return_value !== "") {
+                                if(return_value === ""){ sss = [0, null, null, null, return_value]; }
+                                else{
                                     try {
-                                        return_value = JSON.parse(return_value);
-                                        if (return_value.length === 3) {
-                                            if (return_value[0] !== null) { SCO_in_use = moment(return_value[0]); }
-                                            return_value = return_value[2];
-                                        } else if (return_value.length === 2) {
-                                            SCO_in_use = moment(return_value[0]);
-                                            return_value = return_value[1];
-                                        }
-                                    } catch (e) { }
+                                        sss = JSON.parse(return_value);
+                                        if (sss.length === 5) { sss[1] = moment(sss[1]); }
+                                        else if (sss.length === 3) { sss = [0, null, null, null, sss[2]]; }
+                                        else if (sss.length === 2) { sss = [0, null, null, null, sss[1]]; }
+                                        else { sss = [0, null, null, null, return_value]; }
+                                        return_value = sss[4];
+                                    } catch (e) { sss = [0, null, null, null, return_value]; }
                                 }
                                 suspend_data = return_value;
                             }
                             if (scormPlayerConfig.cache && !parameter.endsWith("._count")) { cache[parameter] = return_value; }
                             if (scormPlayerConfig.showCompleteBtn && parameter === "cmi.core.lesson_status" && return_value === "completed") { createbtn(); }
                         }
-                    } catch (error) {
-                        return_value = "";
-                        console.log(comment("Error in API.LMSGetValue: {0}".format(error.message)));
-                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSGetValue: {0}".format(error.message));
+                    } catch (e) {
+                        return_value = ""; lastError = "101"; diagnostic = e.message;
+                        console.log("{0}{1}".format(command, comment(param(return_value))));
+                        testError(command);
                     }
                     return return_value;
                 },
                 LMSSetValue: function(parameter_1, parameter_2, persist) {
-                    var tmp_value, return_value = "true";
                     try {
+                        var tmp_value, command, return_value = "true";
+                        if(scormPlayerConfig.parameter_2_string && parameter_2 !== undefined && typeof parameter_2 !== "string"){
+                            console.log(comment("{0} parameter_2_string".format(param(parameter_2))));
+                            parameter_2 = parameter_2 + "";
+                        }
+                        tmp_value = parameter_2;
+                        if (parameter_1 === "cmi.suspend_data"){ sss[4] = parameter_2; tmp_value = JSON.stringify(sss); }
+                        command = "API.LMSSetValue({0}, {1});".format(param(parameter_1), param(tmp_value));
                         if (
                             scormPlayerConfig.cache
                             && cache[parameter_1] === undefined
@@ -632,31 +686,49 @@ function scormPlayer() {
                             && !parameter_1.startsWith("cmi.interactions.")
                         ) {
                             console.log(comment("Check current value before set"));
-                            window.API.LMSGetValue(parameter_1);
-                        }
-                        if (entry === "" && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "incomplete") {
-                            console.log(comment("Block change lesson_status"));
-                            console.log("\t\\\\API.LMSSetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
-                            return return_value;
+                            _window.API.LMSGetValue(parameter_1);
                         }
                         if (state === states.Running && cache[parameter_1] === parameter_2 && !persist) {
+                            lastError = "0"; diagnostic = "";
                             console.log(comment("No change data"));
-                            console.log("\t\\\\API.LMSSetValue({0}, {1});{2}".format(param(parameter_1), param(parameter_2), comment(param(return_value), moment())));
+                            console.log("\t\\\\{0}{1}".format(command, comment(param(return_value), moment())));
                             return "true";
                         }
-                        tmp_value = parameter_1 === "cmi.suspend_data" ? JSON.stringify([SCO_in_use, parser, parameter_2]) : parameter_2;
-                        return_value = ev("API.LMSSetValue({0}, {1})".format(param(parameter_1), param(tmp_value)));
-                        if ((noerror = return_value === "true")) {
+                        if (entry === "" && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "incomplete") {
+                            lastError = "0"; diagnostic = "";
+                            console.log(comment("Block change lesson_status"));
+                            console.log("\t\\\\{0}{1}".format(command, comment(param(return_value), moment())));
+                            return return_value;
+                        }
+                        if (!scormPlayerConfig.allowFailed && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "failed"){
+                            lastError = "0"; diagnostic = "";
+                            console.log(comment("Block failed status"));
+                            console.log("\t\\\\{0}{1}".format(command, comment(param(return_value), moment())));
+                            return return_value;
+                        } 
+                        if (parameter_1 === "cmi.core.lesson_status"){
+                            sss[2] = moment.utc();
+                            fetch("http://date.jsontest.com/")
+                                .then(function(response) { if(response.ok){ return response.json(); } })
+                                .then(function(data) { if(data){ sss[2] = moment.utc(data.milliseconds_since_epoch); } });
+                        }
+                        try{ lastError = undefined; diagnostic = undefined; return_value = ev(command); }
+                        catch(e){
+                            return_value = "false"; lastError = "101"; diagnostic = e.message;
+                            console.log("{0}{1}".format(command, comment(param(return_value))));
+                        }
+                        if (return_value === "true") {
+                            lastError = "0"; diagnostic = "";
                             changes = true;
                             if (scormPlayerConfig.autoCommitTime) {
                                 clearTimeout(commit_timeout);
                                 commit_timeout = setTimeout(
-                                    function() { console.log(comment("Auto commit")); window.API.LMSCommit(""); },
+                                    function() { console.log(comment("Auto commit")); _window.API.LMSCommit(""); },
                                     scormPlayerConfig.autoCommitTime
                                 );
                                 if (!commit_max_timeout) {
                                     commit_max_timeout = setTimeout(
-                                        function() { console.log(comment("Timeout 60secs without commit")); window.API.LMSCommit(""); },
+                                        function() { console.log(comment("Timeout 60secs without commit")); _window.API.LMSCommit(""); },
                                         scormPlayerConfig.autoCommitTime * 2
                                     );
                                 }
@@ -664,78 +736,110 @@ function scormPlayer() {
                             if (scormPlayerConfig.cache) { cache[parameter_1] = parameter_2; }
                             if (parameter_1 === "cmi.suspend_data") { suspend_data = parameter_2; }
                             if (scormPlayerConfig.showCompleteBtn && parameter_1 === "cmi.core.lesson_status" && parameter_2 === "completed") { createbtn(); }
-                        } else { testError(); }
-                    } catch (error) {
-                        return_value = "false";
-                        console.log(comment("Error in API.LMSSetValue: {0}".format(error.message)));
-                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSSetValue: {0}".format(error.message));
+                            if (scormPlayerConfig.autoMinMax && parameter_1 === "cmi.core.score.raw"){
+                                if(!cache["cmi.core.score.min"]){ minTimeOut = setTimeout(minFunction, 60000); }
+                                if(!cache["cmi.core.score.max"]){ maxTimeOut = setTimeout(maxFunction, 60000); }
+                            }
+                            if (parameter_1 === "cmi.core.score.min"){ clearTimeout(minTimeOut); minTimeOut = undefined; }
+                            if (parameter_1 === "cmi.core.score.max"){ clearTimeout(minTimeOut); minTimeOut = undefined; }
+                        } else {
+                            var rgx = /cmi[.]interactions[.]\d+[.]correct_responses[.]\d+[.]pattern/g;
+                            if(rgx.test(parameter_1)){ console.log(comment("Error ignored")); }
+                            else{ testError("API.LMSSetValue({0}, {1});".format(param(parameter_1), param(tmp_value).substring(0,10))); }
+                        }
+                    } catch (e) {
+                        return_value = "false"; lastError = "101"; diagnostic = e.message;
+                        console.log("{0}{1}".format(command, comment(param(return_value))));
+                        testError("API.LMSSetValue({0}, {1});".format(param(parameter_1), param(tmp_value).substring(0,10)));
                     }
                     return return_value;
                 },
                 LMSCommit: function(parameter) {
                     try {
-                        var return_value = "true";
+                        var return_value = "true", command;
+                        command = "API.LMSCommit({0});".format(param(parameter));
                         if (scormPlayerConfig.commitOnlyChanges && !changes) {
+                            lastError = "0"; diagnostic = "";
                             console.log(comment("No changes to commit"));
-                            console.log("\t\\\\API.LMSCommit({0});{1}".format(param(parameter), comment(param(return_value), moment())));
+                            console.log("\t\\\\{0}{1}".format(command, comment(param(return_value), moment())));
                             return return_value;
                         }
-                        return_value = ev("API.LMSCommit({0})".format(param(parameter)));
-                        if ((noerror = return_value === "true")) {
+                        try{ lastError = undefined; diagnostic = undefined; return_value = ev(command); }
+                        catch(e){
+                            return_value = "false"; lastError = "101"; diagnostic = e.message;
+                            console.log(comment("Error: {0}".format(e.message)));
+                            console.log("{0}{1}".format(command, comment(param(return_value), moment())));
+                            alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSCommit: {0}".format(e.message));
+                        }
+                        if (return_value === "true") {
+                            lastError = "0"; diagnostic = "";
                             last_commit = moment();
                             changes = false;
                             if (scormPlayerConfig.autoCommitTime) {
                                 commit_timeout = clearTimeout(commit_timeout);
                                 commit_max_timeout = clearTimeout(commit_max_timeout);
                             }
-                        } else {
-                            testError();
-                            alert("¡Ocurrio un error al guardar los datos verifica que tengas conexión a internet!");
-                        }
-                        return return_value;
-                    } catch (error) {
-                        console.log(comment("Error in API.LMSCommit: {0}".format(error.message)));
-                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSCommit: {0}".format(error.message));
-                        return "false";
+                        } else { testError(command); }
+                    } catch (e) {
+                        return_value = "false"; lastError = "101"; diagnostic = e.message;
+                        console.log("{0}{1}".format(command, comment(param(return_value), moment())));
+                        testError(command);
                     }
+                    return return_value;
                 },
                 LMSGetLastError: function() {
                     try {
-                        if (noerror) {
-                            var return_value = "0";
-                            console.log("\t\\\\API.LMSGetLastError();{0}".format(comment(param(return_value), moment())));
-                            return return_value;
-                        }
-                        return ev("API.LMSGetLastError()");
-                    } catch (error) {
-                        console.log(comment("Error in API.LMSGetLastError: {0}".format(error.message)));
-                        return "";
+                        var command = "API.LMSGetLastError();";
+                        if(lastError === undefined){ lastError = ev(command); }
+                        else { console.log("\t\\\\{0}{1}".format(command, comment(param(lastError)))); }
+                    } catch (e) {
+                        lastError = "";
+                        console.log(comment("Error: {0}".format(e.message)));
+                        console.log("\t\\\\{0}{1}".format(command, comment(param(lastError))));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSGetLastError: {0}".format(e.message));
                     }
+                    return lastError;
                 },
                 LMSGetErrorString: function(parameter) {
-                    try { return ev("API.LMSGetErrorString({0})".format(param(parameter))); }
-                    catch (error) {
-                        console.log(comment("Error in API.LMSGetErrorString: {0}".format(error.message)));
-                        return "";
+                    try {
+                        var return_value, command;
+                        command = "API.LMSGetErrorString({0});".format(param(parameter));
+                        return_value = errorCache[parameter];
+                        if(return_value === undefined){
+                            return_value = ev(command);
+                            errorCache[parameter] = return_value;
+                        }else{ console.log("\t\\\\{0}{1}".format(command, comment(param(return_value)))); }
+                    } catch (e) {
+                        return_value = "";
+                        console.log(comment("Error: {0}".format(e.message)));
+                        console.log("{0}{1}".format(command, comment(param(return_value))));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSGetErrorString: {0}".format(e.message));
                     }
+                    return return_value;
                 },
                 LMSGetDiagnostic: function(parameter) {
-                    try { return ev("API.LMSGetDiagnostic({0})".format(param(parameter))); }
-                    catch (error) {
-                        console.log(comment("Error in API.LMSGetDiagnostic: {0}".format(error.message)));
-                        return "";
+                    try {
+                        var command = "API.LMSGetDiagnostic({0});".format(param(parameter));
+                        if(diagnostic === undefined){ diagnostic = ev(command); }
+                        else{ console.log("\t\\\\{0}{1}".format(command,comment(param(diagnostic)))); }
+                    }catch (e) {
+                        diagnostic = "";
+                        console.log(comment("Error: {0}".format(e.message)));
+                        console.log("\t\\\\{0}{1}".format(command,comment(param(diagnostic))));
+                        alert("¡Ocurrio un error comunicate a RedEducativa!\API.LMSGetDiagnostic: {0}".format(e.message));
                     }
+                    return diagnostic;
                 },
-                version: "0.0.20170531"
+                version: "0.0.20170828"
             };
         }
-        ev("window.API.version");
+        ev("_window.API.version;");
         setInterval(
             function() {
                 if (moment() - last_commit >= 10800000) {
                     console.log(comment("Innactive timeout 3Hrs"));
-                    window.API.LMSSetValue("cmi.core.exit", "time-out");
-                    window.API.LMSFinish("");
+                    _window.API.LMSSetValue("cmi.core.exit", "time-out");
+                    _window.API.LMSFinish("");
                 }
             }, 60000
         );
@@ -750,7 +854,7 @@ function scormPlayer() {
             console.log(comment("beforeunload"));
             if (scormPlayerConfig.autoFinish && state === states.Running) {
                 console.log(comment("Auto finish"));
-                window.API.LMSFinish("");
+                _window.API.LMSFinish("");
             }
             cmi.savelog();
             _window.API = _window._API;
@@ -769,28 +873,10 @@ function scormPlayer() {
         });
 
         if (scormPlayerConfig.fillScreen && window.frameElement) {
-            var currentElement = window.frameElement, slibings, i, startF = moment();
-            do {
-                currentElement.style.margin = "0px";
-                currentElement.style.padding = "0px";
-                currentElement.style.border = "none";
-                currentElement.style.minWidth = "100%";
-                currentElement.style.minHeight = "100%";
-                currentElement.style.overflow = "initial";
-                currentElement.style.display = "inline-block";
-                currentElement.style.position = "absolute";
-                currentElement.style.width = null;
-                currentElement.style.height = null;
-                if (currentElement.parentElement) {
-                    slibings = currentElement.parentElement.childElements ?
-                        currentElement.parentElement.childElements() :
-                        currentElement.parentElement.childNodes;
-                    for (i = 0; i < slibings.length; i++) {
-                        if (slibings[i].style && slibings[i] !== currentElement) { slibings[i].style.display = "none"; }
-                    }
-                }
-            } while ((currentElement = currentElement.parentElement))
-            currentElement = window.frameElement
+            var startF = moment();
+            var currentElement = fillwindow(window.frameElement);
+            if(window.parent.frameElement){ fillwindow(window.parent.frameElement); }
+            currentElement = window.frameElement;
             currentElement.style.backgroundColor = "white";
             currentElement.parentElement.style.backgroundColor = "black";
             if (scormPlayerConfig.scale) {
@@ -818,28 +904,10 @@ function scormPlayer() {
 
         var log_location = localStorage.getItem("log_location");
         log_location =
-            log_location === null || isNaN(localStorage.getItem("log_location")) || Number(log_location) >= 14 ? 0
-                : Number(log_location) + 1;
+            log_location === null || isNaN(localStorage.getItem("log_location")) || Number(log_location) >= 14 ? 0 : Number(log_location) + 1;
 
         localStorage.setItem("log_location", log_location);
         log_location = "log_" + log_location;
-
-        localStorage.removeItem("log_15");
-        localStorage.removeItem("log_16");
-        localStorage.removeItem("log_17");
-        localStorage.removeItem("log_18");
-        localStorage.removeItem("log_19");
-        localStorage.removeItem("log_20");
-        localStorage.removeItem("log_21");
-        localStorage.removeItem("log_22");
-        localStorage.removeItem("log_23");
-        localStorage.removeItem("log_24");
-        localStorage.removeItem("log_25");
-        localStorage.removeItem("log_26");
-        localStorage.removeItem("log_27");
-        localStorage.removeItem("log_28");
-        localStorage.removeItem("log_29");
-        localStorage.removeItem("log_30");
         console.log(comment("log_location: {0}".format(log_location)));
         cmi.savelog = function() {
             console.log(comment("savelog"));
@@ -847,21 +915,58 @@ function scormPlayer() {
         }
         cmi.savelog();
 
-
-
         if (scormPlayerConfig.autoInitialize) {
             console.log(comment("Auto initialize"));
-            window.API.LMSInitialize("");
+            _window.API.LMSInitialize("");
         }
         cmi.savelog();
     } catch (error) {
+        window.console.log(error.message);
         console.log(comment("Error in scormPlayer: {0}".format(error.message)));
-        alert("¡Ocurrio un error comunicate a RedEducativa!\nscormPlayer: {0}".format(error.message));
+        alert("¡Ocurrio un error comunicate a RedEducativa!\nscormPlayer: {0}".format(error.message + (error.lineNumber ? error.lineNumber : "")));
     }
+    function fillwindow(currentElement){
+        var slibings, i;
+        do {
+            currentElement.style.margin = "0px";
+            currentElement.style.padding = "0px";
+            currentElement.style.border = "none";
+            currentElement.style.minWidth = "100%";
+            currentElement.style.maxWidth = "100%";
+            currentElement.style.minHeight = "100%";
+            currentElement.style.maxHeight = "100%";
+            currentElement.style.overflow = "initial";
+            currentElement.style.display = "inline-block";
+            currentElement.style.position = "absolute";
+            currentElement.style.width = null;
+            currentElement.style.height = null;
+            if (currentElement.parentElement) {
+                slibings = currentElement.parentElement.childElements ?
+                    currentElement.parentElement.childElements() :
+                    currentElement.parentElement.childNodes;
+                for (i = 0; i < slibings.length; i++) {
+                    if (slibings[i].style && slibings[i] !== currentElement) { slibings[i].style.display = "none"; }
+                }
+            }
+        } while (currentElement.parentElement && (currentElement = currentElement.parentElement))
+        return currentElement;
+    }
+    function minFunction(){
+        if(minTimeOut){ clearTimeout(minTimeOut); minTimeOut = undefined; }
+        console.log(comment("Auto score min"));
+        _window.API.LMSSetValue("cmi.core.score.min", scormPlayerConfig.autoMinMax[0] + "");
+    };
+    function maxFunction(){
+        if(minTimeOut){ clearTimeout(minTimeOut); minTimeOut = undefined; }
+        console.log(comment("Auto score max"));
+        _window.API.LMSSetValue("cmi.core.score.max", scormPlayerConfig.autoMinMax[1] + "");
+    };
     function ev(command) {
-        var start = moment();
-        var return_value = eval(command);
-        console.log("{0};{1}".format(command, comment(param(return_value), start)));
+        var start = moment(), return_value;
+        return_value = eval(command);
+        console.log(
+            "{0}{1}".format(command, comment(param(typeof return_value === "object" ? JSON.stringify(return_value): return_value), start))
+        );
         return return_value;
     }
     function resize() {
@@ -927,13 +1032,14 @@ function scormPlayer() {
             moment.duration(startF ? end - startF : 0).format("HH:mm:ss.SSS")
         );
     }
-    function testError() {
-        var error = window.API.LMSGetLastError();
-        if (error !== "0") {
-            window.API.LMSGetErrorString(error);
-            window.API.LMSGetDiagnostic("");
+    function testError(command) {
+        _window.API.LMSGetLastError();
+        if (lastError !== "0") {
+            var es = _window.API.LMSGetErrorString(lastError);
+            _window.API.LMSGetDiagnostic("");
+            alert("¡Ocurrio un error! comunicate a RedEducativa\nLlamada: {0}\nNúmero de error: {1}\nError: {2}\nDiagnostico: {3}".format(command,lastError,es,diagnostic));
             return true;
-        }
+        }else{ diagnostic = ""; }
     }
     function newguid() {
         //http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
@@ -942,12 +1048,15 @@ function scormPlayer() {
         });
     }
     function saveInit(inUse) {
-        if (inUse) { SCO_in_use = moment(); } else { SCO_in_use = undefined; }
-        window.API.LMSSetValue("cmi.suspend_data", suspend_data, true);
+        sss[0] = inUse ? 1 : 0;
+        sss[1] = moment();
+        _window.API.LMSSetValue("cmi.suspend_data", sss[4], true);
         cmi.savelog();
         console.log(comment("SaveInit"));
     }
-    function param(param) { return typeof param === "string" ? "\"{0}\"".format(param.replace(/"/g, "\\\"")) : param + ""; }
+    function param(param) {
+        return typeof param === "string" ? JSON.stringify(param) : param + "";
+    }
     function setlocals() {
         console.log(comment("¡¡LocalStorage not supported!!"));
         localStorage = { getItem: function() { return null; }, setItem: function() { }, removeItem: function() { } }
